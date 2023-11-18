@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "GUARDIAN",
+  "version": "1.0",
+  "description": "Block access to social media sites and censor profanities in X (Twitter)",
+  "permissions": ["activeTab", "scripting"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_popup": "index.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content_scripts.js"]
+    }
+  ]
+}
