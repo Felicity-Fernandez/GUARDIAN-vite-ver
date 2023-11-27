@@ -14,7 +14,16 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content_scripts.js"]
+      "js": ["dist/bundle.js"]
     }
-  ]
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' ; object-src 'self'",
+    "script-src": [
+      "'self'",
+      "'unsafe-eval'",
+      "'wasm-unsafe-eval'",
+      "'inline-speculation-rules'"
+    ]
+  }
 }
