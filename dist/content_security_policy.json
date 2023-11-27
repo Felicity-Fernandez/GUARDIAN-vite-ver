@@ -1,0 +1,11 @@
+{
+  "extension_pages": "script-src 'self'; object-src 'self';",
+  "sandbox": "script-src 'self'; object-src 'self';",
+  "default-src": "script-src 'self'; object-src 'self';",
+  "script-src": [
+    "'self'",
+    "'unsafe-eval'",
+    "'wasm-unsafe-eval'",
+    "'inline-speculation-rules'"
+  ]
+}
