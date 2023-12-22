@@ -1,6 +1,12 @@
 // const nlp = require("compromise");
 import nlp from "compromise";
+import { badWords } from "./profanity.js";
 
+// Create a regular expression pattern for matching profanity words
+
+const profanityPattern = `(${badWords
+  .map((word) => word.replace(/[-/\\^$*+?.()|[\]{}]/gi, "\\$&"))
+  .join("|")})`;
 let tweets = null;
 chrome.runtime.sendMessage({ action: "getFilterSites" }, (toFilterSites) => {
   const currentUrl = window.location.href;
@@ -22,7 +28,7 @@ chrome.runtime.sendMessage({ action: "getFilterSites" }, (toFilterSites) => {
           clearInterval(interval);
           processTweets();
         }
-      }, 1000);
+      }, 100);
     }
   }
 });
@@ -75,11 +81,8 @@ function processTweets() {
 
         const fetchedTweet = nlp(tweet.textContent);
         const filteredTweet = fetchedTweet
-          .match(
-            "(a|the|an|is|are|at|in|on|i|you|he|she|it|we|they|am|was|were|be|been|being|have|has|had|do|does|did|will|would|shall|should|may|might|must|can|could|of|to|and|or|for|nor|but|yet|so|with|without|about|above|across|after|against|along|among|around|at|before|behind|below|beneath|beside|between|beyond|by|down|during|except|for|from|inside|into|like|near|of|off|on|onto|out|outside|over|since|through|throughout|till|to|toward|under|underneath|until|up|upon|with|within|without|according to|because of|by means of|in addition to|in front of|in place of|in spite of|instead of|on account of|out of|as well as|due to|in case of|in front of|in order to|in place of|in spite of|on account of|out of|as well as|due to|in case of|in front of|in order to|in place of|in spite of|on account of|out of|as well as|due to|in case of|in front of|in order to|in place of|in spite of|on account of|out of|as well as|due to|in case of|in front of|in order to|in place of|in spite of|on account of|out of|as well as|due to|in case of|in front of|in order to|in place of|in spite of|on account of|out of|as well as|due to|in case of|in front of|in order to|in place of|in spite of|on account of|out of|as well as|due to|in case of|in front of|in order to|in place of|in spite of|on account of|out of|as well as|due to|in case of|in front of|in order to|in place of|in spite of|on account of|out of|as well as|due to|in case of)"
-          )
+          .match(profanityPattern)
           .replace("****");
-        console.log(filteredTweet);
         let caption = "";
         for (const array of filteredTweet.document) {
           for (const word of array) {
