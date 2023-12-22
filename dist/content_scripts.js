@@ -3,7 +3,13 @@ import nlp from "compromise";
 import { badWords } from "./profanity.js";
 
 // Create a regular expression pattern for matching profanity words
-
+chrome.runtime.sendMessage({ action: "getBlockSites" }, (toBlockSites) => {
+  const currentUrl = window.location.href;
+  if (toBlockSites.some((site) => currentUrl.includes(site))) {
+    console.log(window.location.href);
+    window.location.href = "about:blank";
+  }
+});
 const profanityPattern = `(${badWords
   .map((word) => word.replace(/[-/\\^$*+?.()|[\]{}]/gi, "\\$&"))
   .join("|")})`;
@@ -12,6 +18,7 @@ chrome.runtime.sendMessage({ action: "getFilterSites" }, (toFilterSites) => {
   const currentUrl = window.location.href;
   if (toFilterSites.some((site) => currentUrl.includes(site))) {
     console.log("true");
+
     // document.addEventListener("DOMContentLoaded", processTweets);
 
     // If DOMContentLoaded has alreadcurredy oc, execute the logic immediately
