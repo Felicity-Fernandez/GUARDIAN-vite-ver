@@ -1,4 +1,4 @@
-// const nlp = require("compromise");
+import * as toxicity from "@tensorflow-models/toxicity";
 import nlp from "compromise";
 import { badWords } from "./profanity.js";
 
@@ -14,110 +14,130 @@ const profanityPattern = `(${badWords
   .map((word) => word.replace(/[-/\\^$*+?.()|[\]{}]/gi, "\\$&"))
   .join("|")})`;
 let tweets = null;
-chrome.runtime.sendMessage({ action: "getFilterSites" }, (toFilterSites) => {
-  const currentUrl = window.location.href;
-  if (toFilterSites.some((site) => currentUrl.includes(site))) {
-    console.log("true");
+// The minimum prediction confidence.
+const threshold = 0.9;
 
-    // document.addEventListener("DOMContentLoaded", processTweets);
+// Which toxicity labels to return.
+// Remove the unused variable
+// const labelsToInclude = ["identity_attack", "insult", "threat", "toxicity"];
+toxicity.load(threshold).then((model) => {
+  chrome.runtime.sendMessage({ action: "getFilterSites" }, (toFilterSites) => {
+    const currentUrl = window.location.href;
+    if (toFilterSites.some((site) => currentUrl.includes(site))) {
+      console.log("true");
 
-    // If DOMContentLoaded has alreadcurredy oc, execute the logic immediately
-    if (
-      document.readyState === "complete" ||
-      document.readyState === "interactive"
-    ) {
-      const interval = setInterval(() => {
-        if (
-          document.querySelector('[data-testid = "cellInnerDiv"]')
-            ?.parentElement
-        ) {
-          console.log("ready...");
-          clearInterval(interval);
-          processTweets();
-        }
-      }, 100);
-    }
-  }
-});
-function processTweets() {
-  console.log("started");
-  let targetNode = document.querySelector(
-    '[data-testid = "cellInnerDiv"]'
-  ).parentElement;
+      // document.addEventListener("DOMContentLoaded", processTweets);
 
-  console.log(targetNode);
-
-  // Options for the observer (which mutations to observe)
-  const config = { attributes: true, childList: true, subtree: true };
-
-  // Callback function to execute when mutations are observed
-  const callback = (mutationList, observer) => {
-    for (const mutation of mutationList) {
-      if (mutation.type === "childList") {
-        console.log("A child node has been added or removed.");
-        tweets = document.querySelectorAll('[dir = "auto"]');
-
-        // console.log(tweets);
+      // If DOMContentLoaded has alreadcurredy oc, execute the logic immediately
+      if (
+        document.readyState === "complete" ||
+        document.readyState === "interactive"
+      ) {
+        const interval = setInterval(() => {
+          if (
+            document.querySelector('[data-testid = "cellInnerDiv"]')
+              ?.parentElement
+          ) {
+            console.log("ready...");
+            clearInterval(interval);
+            processTweets();
+          }
+        }, 100);
       }
     }
-    // console.log(tweets);
+  });
+  function processTweets() {
+    console.log("started");
+    let targetNode = document.querySelector(
+      '[data-testid = "cellInnerDiv"]'
+    ).parentElement;
 
-    if (tweets && tweets?.length < 100000 && tweets?.length > 0) {
-      observer.disconnect();
-      [...tweets].forEach((tweet) => {
-        //     console.log(tweets);
-        //     const doc = nlp(tweet);
-        //     const filtered = doc.match("(swear|badword|offensive|arse)").replace("****");
-        //     tweet.innerText.replace(filtered.out("text"));
-        var xpathExpression = "//*[contains(text(), 'a')]";
+    console.log(targetNode);
 
-        // Evaluate the XPath expression
-        var xpathresult = document.evaluate(
-          xpathExpression,
-          document,
-          null,
-          XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE,
-          null
-        );
-        console.log(xpathresult);
-        for (var i = 0; i < xpathresult.snapshotLength; i++) {
-          var matchedElement = xpathresult.snapshotItem(i);
-          // Do something with the selected elements
-          console.log(matchedElement);
+    // Options for the observer (which mutations to observe)
+    const config = { attributes: true, childList: true, subtree: true };
+
+    // Callback function to execute when mutations are observed
+    const callback = (mutationList, observer) => {
+      for (const mutation of mutationList) {
+        if (mutation.type === "childList") {
+          console.log("A child node has been added or removed.");
+          tweets = document.querySelectorAll('[dir = "auto"]');
+
+          // console.log(tweets);
         }
+      }
+      // console.log(tweets);
 
-        const fetchedTweet = nlp(tweet.textContent);
-        const filteredTweet = fetchedTweet
-          .match(profanityPattern)
-          .replace("****");
-        let caption = "";
-        for (const array of filteredTweet.document) {
-          for (const word of array) {
-            caption += " " + word.text;
+      if (tweets && tweets?.length < 100000 && tweets?.length > 0) {
+        observer.disconnect();
+        [...tweets].forEach(async (tweet) => {
+          var xpathExpression = "//*[contains(text(), 'a')]";
+
+          // Evaluate the XPath expression
+          var xpathresult = document.evaluate(
+            xpathExpression,
+            document,
+            null,
+            XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE,
+            null
+          );
+          console.log(xpathresult);
+          for (var i = 0; i < xpathresult.snapshotLength; i++) {
+            var matchedElement = xpathresult.snapshotItem(i);
+            // Do something with the selected elements
+            console.log(matchedElement);
           }
-        }
 
-        tweet.textContent = caption;
-        console.log(caption, "CAPTION");
-        console.log(tweet.innerText);
-      });
-    }
-  };
+          const fetchedTweet = nlp(tweet.textContent);
+          const filteredTweet = fetchedTweet
+            .match(profanityPattern)
+            .replace("****");
+          const predictions = await model.classify([tweet.textContent]);
+          const toxicityScores = predictions;
 
-  // Create an observer instance linked to the callback function
-  const observer = new MutationObserver(callback);
+          console.log("Toxicity Scores:", toxicityScores);
 
-  // Start observing the target node for configured mutations
-  observer.observe(targetNode, config);
-  // const tweets = document.querySelectorAll(
-  //   ".css-1dbjc4n.r-1iusvr4.r-16y2uox.r-1777fci.r-kzbkwu"
-  // );
-  // console.log(tweets);
-  // [...tweets].forEach((tweet) => {
-  //   // const doc = nlp(tweet);
-  //   // const filtered = doc.match("(swear|badword|offensive|arse)").replace("****");
-  //   // tweet.innerText.replace(filtered.out("text"));
-  //   console.log(tweet.innerText);
-  // });
-}
-console.log(tweets);
+          const matchedLabels = toxicityScores
+            .filter((score) => score.results[0].match)
+            .map((score) => score.label);
+
+          if (matchedLabels.length > 0) {
+            // Tweet is toxic
+            console.log("Tweet is toxic:", tweet.innerText);
+            let caption = "";
+            for (const array of filteredTweet.document) {
+              for (const word of array) {
+                caption += " " + word.text;
+              }
+            }
+
+            tweet.textContent = caption;
+            // console.log("Filtered Caption:", caption);
+            // console.log("Original Tweet:", tweet.innerText);
+          } else {
+            // Tweet is not toxic
+            console.log("Tweet is not toxic:", tweet.innerText);
+          }
+
+          // let caption = "";
+          // for (const array of filteredTweet.document) {
+          //   for (const word of array) {
+          //     caption += " " + word.text;
+          //   }
+          // }
+
+          // tweet.textContent = caption;
+          // console.log(caption, "CAPTION");
+          // console.log(tweet.innerText);
+        });
+      }
+    };
+
+    // Create an observer instance linked to the callback function
+    const observer = new MutationObserver(callback);
+
+    // Start observing the target node for configured mutations
+    observer.observe(targetNode, config);
+  }
+});
