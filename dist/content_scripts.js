@@ -12,7 +12,7 @@ chrome.runtime.sendMessage({ action: "getBlockSites" }, (toBlockSites) => {
   if (blockSite) {
     console.log(window.location.href);
 
-    window.location.href = "about:blank";
+    getRecentConsumed();
 
     // Generate a unique identifier for this tab
     const tabId = Date.now().toString();
@@ -32,19 +32,31 @@ chrome.runtime.sendMessage({ action: "getBlockSites" }, (toBlockSites) => {
         (currentTime - blockStartTimes[blockSite][tabId]) / (1000 * 60); // Convert milliseconds to minutes
 
       let consumed = calculateTotalTime(blockStartTimes); // Recalculate total time spent on all blocked sites
-      if (consumed >= timer) {
-        window.location.href = "about:blank";
-      }
+      getRecentConsumed(consumed);
+
+      //if (consumed >= timer) {
+      // window.location.href = "about:blank";
+      //console.log(consumed, timer);
+      //}
     }, 1000); // Check every second
   }
 });
-setInterval(() => {
-  const now = new Date();
-  if (now.getHours() === 0 && now.getMinutes() === 0) {
-    consumed = 0;
-    console.log("Consumed time reset to 0 at midnight.");
+
+function getRecentConsumed(consumed) {
+  let recentConsumed = localStorage.getItem("consumed");
+  if (recentConsumed) {
+    console.log(recentConsumed);
+    if (recentConsumed >= timer) {
+      window.location.href = "about:blank";
+      //console.log(consumed, timer);
+    } else {
+      recentConsumed = recentConsumed + consumed;
+      localStorage.setItem("consumed", recentConsumed);
+    }
+  } else {
+    localStorage.setItem("consumed", consumed ?? 0);
   }
-}, 60000);
+}
 function calculateTotalTime(blockStartTimes) {
   let total = 0;
   for (const site in blockStartTimes) {
