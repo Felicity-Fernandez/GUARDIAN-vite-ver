@@ -12,5 +12,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse(toFilterSites);
   } else if (message.action === "getBlockSites") {
     sendResponse(toBlockSites);
+  } else if (message.action === "updateBlockSites") {
+    const { site, checked } = message;
+    if (checked) {
+      if (!toBlockSites.includes(site)) {
+        toBlockSites.push(site);
+      }
+    } else {
+      const index = toBlockSites.indexOf(site);
+      if (index !== -1) {
+        toBlockSites.splice(index, 1);
+      }
+    }
   }
+  console.log("Updated toBlockSites:", toBlockSites);
 });

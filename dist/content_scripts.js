@@ -1,6 +1,7 @@
 import * as toxicity from "@tensorflow-models/toxicity";
 import nlp from "compromise";
 import { badWords } from "./profanity.js";
+
 let timer = 2; // Total time limit in minutes
 // let consumed = 0; // Total time spent on all blocked sites in minutes
 const blockStartTimes = {}; // Object to store start times for each blocked site
@@ -45,7 +46,7 @@ chrome.runtime.sendMessage({ action: "getBlockSites" }, (toBlockSites) => {
 function getRecentConsumed(consumed) {
   let recentConsumed = localStorage.getItem("consumed");
   if (recentConsumed) {
-    console.log(recentConsumed);
+    // console.log(recentConsumed);
     if (recentConsumed >= timer) {
       window.location.href = "about:blank";
       //console.log(consumed, timer);
