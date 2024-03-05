@@ -4,6 +4,27 @@ import { badWords } from "./profanity.js";
 
 let timer = 2; // Total time limit in minutes
 // let consumed = 0; // Total time spent on all blocked sites in minutes
+
+// Attempt to retrieve the array from sync storage
+chrome.storage.sync.get(["blockSites"], function (result) {
+  // Check if the array already exists
+  if (!result.blockSites) {
+    // If the array doesn't exist, create it
+    var blockSites = [
+      "youtube.com",
+      "facebook.com",
+      "instagram.com",
+      "tiktok.com",
+    ];
+
+    // Store the array
+    chrome.storage.sync.set({ blockSites: blockSites }, function () {
+      console.log("Array is stored");
+    });
+  } else {
+    console.log("Array already exists:", result.blockSites);
+  }
+});
 const blockStartTimes = {}; // Object to store start times for each blocked site
 
 chrome.runtime.sendMessage({ action: "getBlockSites" }, (toBlockSites) => {

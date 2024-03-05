@@ -20,7 +20,7 @@
   float: left;
   width: 50%;
   padding: 10px;
-  border: 2px solid;
+  border: 1px solid;
   text-align: center;
   border-radius: 0% 0% 0% 0%;
 }
@@ -29,16 +29,17 @@
   float: left;
   width: 50%;
   padding: 10px;
-  border: 2px solid;
+  border: 1px solid;
   text-align: center;
   border-radius: 0% 0% 0% 0%;
 }
 
 #upper {
-  max-height: 200px;
+  max-height: 250px;
   overflow: auto;
   border: 1px solid;
-  padding: 10px;
+  padding-left: 10px;
+  padding-bottom: 10px;
 }
 
 #upper ul {
@@ -65,7 +66,7 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: #ffffff;
   cursor: pointer;
   transition: border-color 0.25s;
 }
@@ -76,7 +77,93 @@ button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
+.checkbox-label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding-left: 25px; /* Adjust as needed */
+  cursor: pointer;
+  font-size: 12px; /* Adjust as needed */
+}
 
+.checkbox-label input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 15px; /* Adjust as needed */
+  width: 15px; /* Adjust as needed */
+  background-color: #ccc; /* Default background color */
+  border-radius: 50%; /* Convert to circle */
+}
+
+.checkbox-label:hover input ~ .checkmark {
+  background-color: #aaa; /* Change background color on hover */
+}
+
+.checkbox-label input:checked ~ .checkmark {
+  background-color: #3f3f3f; /* Change background color when checked */
+}
+
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+.checkbox-label input:checked ~ .checkmark:after {
+  display: block;
+}
+
+.checkbox-label .checkmark:after {
+  left: 9px; /* Adjust as needed */
+  top: 5px; /* Adjust as needed */
+  width: 5px; /* Adjust as needed */
+  height: 10px; /* Adjust as needed */
+  border-width: 0 3px 3px 0;
+  transform: rotate(45deg);
+}
+.box {
+  padding-top: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.container {
+  padding-top: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.text-input {
+  width: 200px; /* Adjust the width as needed */
+  height: 30px; /* Adjust the height as needed */
+  border: 1px solid #ccc;
+  border-radius: 20px; /* Adjust the border radius as needed */
+  padding: 5px 10px; /* Adjust the padding as needed */
+  box-sizing: border-box; /* Include padding in width and height */
+  display: block;
+  margin: 0 auto; /* Align to center */
+  background-color: #ccc;
+}
+.blkbtn {
+  width: 200px; /* Adjust the width as needed */
+  height: 30px; /* Adjust the height as needed */
+  border: 1px solid #ff5353; /* Button border color */
+  background-color: #ff5353; /* Button background color */
+  color: #fff; /* Button text color */
+  border-radius: 20px;
+  padding: 10px;
+  margin-left: -4px; /* Adjust margin to compensate for border width */
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  padding: 5px 10px; /* Adjust the padding as needed */
+}
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
