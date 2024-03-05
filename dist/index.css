@@ -35,8 +35,8 @@
 }
 
 #upper {
-  max-height: 250px;
-  overflow: auto;
+  /* max-height: 250px; */
+  /* overflow: auto; */
   border: 1px solid;
   padding-left: 10px;
   padding-bottom: 10px;
@@ -45,6 +45,13 @@
 #upper ul {
   list-style-type: none;
   padding: 0;
+}
+#blklist {
+  max-height: 250px;
+  overflow: auto;
+  /* border: 1px solid; */
+  padding-left: 10px;
+  padding-bottom: 10px;
 }
 body {
   margin: 0;

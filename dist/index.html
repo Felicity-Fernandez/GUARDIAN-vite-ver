@@ -17,14 +17,28 @@
       </div>
       <div id="mainBody">
         <div id="upper">
-          <h4>Block Sites</h4>
+          
+          <div id="setTime">
+            <div><h4>Set Time Limit</h4>
+            Current Limit: <span id="currentLimit"></span> minutes</div> 
+            <input type="text" id="limit" placeholder="Set time limit in minutes"></input>
+            <button id="setBtn">Set</button>
+          </div>
+          <div id="blklist">
+            <h4>Block Sites</h4>
           <ul id="list"></ul>
+          </div>
           <div class="box">
-            <input type="text" class="text-input" placeholder="Add site" />
+            <input
+              type="text"
+              class="text-input"
+              id="newSite"
+              placeholder="Add site"
+            />
           </div>
 
           <div class="container">
-            <button type="button" class="blkbtn">Block Site</button>
+            <button type="button" class="blkbtn" id="addBtn">Block Site</button>
           </div>
         </div>
       </div>

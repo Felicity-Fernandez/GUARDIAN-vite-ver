@@ -79,3 +79,40 @@ chrome.storage.sync.get(["blockSites"], function (result) {
     }
   });
 });
+let timer = 0;
+chrome.storage.sync.get(["time"], function (result) {
+  timer = result.time;
+  console.log(timer);
+  document.getElementById("currentLimit").textContent = timer;
+});
+document.addEventListener("DOMContentLoaded", function () {
+  var addBtn = document.getElementById("addBtn");
+  addBtn.addEventListener("click", function () {
+    const site = document.getElementById("newSite").value;
+    if (site) {
+      if (blockSites.includes(site)) {
+        return;
+      }
+      blockSites.push(site);
+      chrome.storage.sync.set({ blockSites: blockSites }, function () {
+        console.log("blockSites updated:", blockSites);
+      });
+      document.getElementById(
+        "list"
+      ).innerHTML += `<li id="item-${site}"><label class="checkbox-label">${site}<input type="checkbox" checked><span class="checkmark"></span></label></li>`;
+      document.getElementById("newSite").value = "";
+    }
+  });
+
+  var setBtn = document.getElementById("setBtn");
+  setBtn.addEventListener("click", function () {
+    const time = document.getElementById("limit").value;
+    if (time) {
+      chrome.storage.sync.set({ time: time }, function () {
+        console.log("time updated:", time);
+      });
+      document.getElementById("currentLimit").textContent = time;
+      document.getElementById("limit").value = "";
+    }
+  });
+});

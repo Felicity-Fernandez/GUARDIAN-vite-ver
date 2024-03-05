@@ -25,6 +25,20 @@ chrome.storage.sync.get(["blockSites"], function (result) {
     console.log("Array already exists:", result.blockSites);
   }
 });
+chrome.storage.sync.get(["time"], function (result) {
+  // Check if the array already exists
+  if (!result.time) {
+    // If the array doesn't exist, create it
+    var initialTime = 0;
+
+    // Store the array
+    chrome.storage.sync.set({ time: initialTime }, function () {
+      console.log("Time is stored");
+    });
+  } else {
+    console.log("Time already exists:", result.time);
+  }
+});
 const blockStartTimes = {}; // Object to store start times for each blocked site
 
 chrome.runtime.sendMessage({ action: "getBlockSites" }, (toBlockSites) => {
