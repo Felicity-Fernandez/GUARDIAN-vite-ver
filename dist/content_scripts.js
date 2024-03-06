@@ -2,108 +2,152 @@ import * as toxicity from "@tensorflow-models/toxicity";
 import nlp from "compromise";
 import { badWords } from "./profanity.js";
 
-let timer = 2; // Total time limit in minutes
-// let consumed = 0; // Total time spent on all blocked sites in minutes
+let fetchedSites = [];
 
-// Attempt to retrieve the array from sync storage
-chrome.storage.sync.get(["blockSites"], function (result) {
-  // Check if the array already exists
-  if (!result.blockSites) {
-    // If the array doesn't exist, create it
-    var blockSites = [
-      "youtube.com",
-      "facebook.com",
-      "instagram.com",
-      "tiktok.com",
-    ];
+async function retrieveBlockSites() {
+  return new Promise((resolve, reject) => {
+    chrome.storage.sync.get(
+      ["blockSites", "time", "consumed"],
+      function (result) {
+        if (!result.blockSites) {
+          var blockSites = [
+            "youtube.com",
+            "facebook.com",
+            "instagram.com",
+            "tiktok.com",
+          ];
+          var initialTime = 0;
+          var initialConsumed = 0;
+          chrome.storage.sync.set(
+            {
+              blockSites: blockSites,
+              time: initialTime,
+              consumed: initialConsumed,
+            },
+            function () {
+              console.log("Array is stored");
+              chrome.storage.sync.get(
+                ["blockSites", "time", "consumed"],
+                function (result) {
+                  console.log("Array is stored", result);
+                }
+              );
+              resolve(result);
+            }
+          );
+        } else {
+          console.log("Array already exists:", result);
+          resolve(result);
+        }
+      }
+    );
+  });
+}
 
-    // Store the array
-    chrome.storage.sync.set({ blockSites: blockSites }, function () {
-      console.log("Array is stored");
-    });
-  } else {
-    console.log("Array already exists:", result.blockSites);
+async function main() {
+  try {
+    fetchedSites = await retrieveBlockSites();
+    let siteList = fetchedSites.blockSites;
+    console.log(siteList);
+    console.log("fetched", fetchedSites);
+    const currentUrl = window.location.href;
+    if (siteList.some((site) => currentUrl.includes(site))) {
+      console.log(currentUrl);
+    } else {
+      console.log("not included");
+    }
+    // Do something with fetchedSites here
+  } catch (error) {
+    console.error("Error retrieving block sites:", error);
   }
-});
-chrome.storage.sync.get(["time"], function (result) {
-  // Check if the array already exists
-  if (!result.time) {
-    // If the array doesn't exist, create it
-    var initialTime = 0;
+}
 
-    // Store the array
-    chrome.storage.sync.set({ time: initialTime }, function () {
-      console.log("Time is stored");
-    });
-  } else {
-    console.log("Time already exists:", result.time);
-  }
-});
+main();
+
+// chrome.storage.sync.get(["time", "consumed"], function (result) {
+//   // Check if the variable already exists
+//   if (!result.time) {
+//     // If the variable doesn't exist, create it
+//     var initialTime = 0;
+//     var initialConsumed = 0;
+//     // Store the variable
+//     chrome.storage.sync.set(
+//       { time: initialTime, consumed: initialConsumed },
+//       function () {
+//         console.log("Time is stored");
+//       }
+//     );
+//   } else {
+//     console.log("Time already exists:", result.time);
+//   }
+// });
 const blockStartTimes = {}; // Object to store start times for each blocked site
 
-chrome.runtime.sendMessage({ action: "getBlockSites" }, (toBlockSites) => {
-  const currentUrl = window.location.href;
-  const blockSite = toBlockSites.find((site) => currentUrl.includes(site));
+//const blockSite = fetchedSites.find((site) => currentUrl.includes(site));
+//console.log(blockSite);
+// chrome.runtime.sendMessage({ action: "getBlockSites" }, (toBlockSites) => {
+//   const currentUrl = window.location.href;
+//   const blockSite = toBlockSites.find((site) => currentUrl.includes(site));
 
-  if (blockSite) {
-    console.log(window.location.href);
+//   if (blockSite) {
+//     console.log(window.location.href);
 
-    getRecentConsumed();
+//     getRecentConsumed();
 
-    // Generate a unique identifier for this tab
-    const tabId = Date.now().toString();
+//     // Generate a unique identifier for this tab
+//     const tabId = Date.now().toString();
 
-    // Check if start time is recorded for the site in this tab, if not, record it
-    if (!blockStartTimes[blockSite]) {
-      blockStartTimes[blockSite] = {};
-    }
-    if (!blockStartTimes[blockSite][tabId]) {
-      blockStartTimes[blockSite][tabId] = new Date().getTime();
-    }
+//     // Check if start time is recorded for the site in this tab, if not, record it
+//     if (!blockStartTimes[blockSite]) {
+//       blockStartTimes[blockSite] = {};
+//     }
+//     if (!blockStartTimes[blockSite][tabId]) {
+//       blockStartTimes[blockSite][tabId] = new Date().getTime();
+//     }
 
-    // Check if time limit is exceeded
-    setInterval(() => {
-      const currentTime = new Date().getTime();
-      const timeElapsed =
-        (currentTime - blockStartTimes[blockSite][tabId]) / (1000 * 60); // Convert milliseconds to minutes
+//     // Check if time limit is exceeded
+//     setInterval(() => {
+//       const currentTime = new Date().getTime();
+//       const timeElapsed =
+//         (currentTime - blockStartTimes[blockSite][tabId]) / (1000 * 60); // Convert milliseconds to minutes
 
-      let consumed = calculateTotalTime(blockStartTimes); // Recalculate total time spent on all blocked sites
-      getRecentConsumed(consumed);
+//       let consumed = calculateTotalTime(blockStartTimes); // Recalculate total time spent on all blocked sites
+//       getRecentConsumed(consumed);
 
-      //if (consumed >= timer) {
-      // window.location.href = "about:blank";
-      //console.log(consumed, timer);
-      //}
-    }, 1000); // Check every second
-  }
-});
+//       //if (consumed >= timer) {
+//       // window.location.href = "about:blank";
+//       //console.log(consumed, timer);
+//       //}
+//     }, 1000); // Check every second
+//   }
+// });
 
-function getRecentConsumed(consumed) {
-  let recentConsumed = localStorage.getItem("consumed");
-  if (recentConsumed) {
-    // console.log(recentConsumed);
-    if (recentConsumed >= timer) {
-      window.location.href = "about:blank";
-      //console.log(consumed, timer);
-    } else {
-      recentConsumed = recentConsumed + consumed;
-      localStorage.setItem("consumed", recentConsumed);
-    }
-  } else {
-    localStorage.setItem("consumed", consumed ?? 0);
-  }
-}
-function calculateTotalTime(blockStartTimes) {
-  let total = 0;
-  for (const site in blockStartTimes) {
-    for (const tabId in blockStartTimes[site]) {
-      const startTime = blockStartTimes[site][tabId];
-      const currentTime = new Date().getTime();
-      total += (currentTime - startTime) / (1000 * 60); // Convert milliseconds to minutes
-    }
-  }
-  return total;
-}
+// function getRecentConsumed(consumed) {
+//   let recentConsumed = localStorage.getItem("consumed");
+//   if (recentConsumed) {
+//     // console.log(recentConsumed);
+//     if (recentConsumed >= timer) {
+//       window.location.href = "about:blank";
+//       //console.log(consumed, timer);
+//     } else {
+//       recentConsumed = recentConsumed + consumed;
+//       localStorage.setItem("consumed", recentConsumed);
+//     }
+//   } else {
+//     localStorage.setItem("consumed", consumed ?? 0);
+//   }
+// }
+// function calculateTotalTime(blockStartTimes) {
+//   let total = 0;
+//   for (const site in blockStartTimes) {
+//     for (const tabId in blockStartTimes[site]) {
+//       const startTime = blockStartTimes[site][tabId];
+//       const currentTime = new Date().getTime();
+//       total += (currentTime - startTime) / (1000 * 60); // Convert milliseconds to minutes
+//     }
+//   }
+//   return total;
+// }
 
 const profanityPattern = `(${badWords
   .map((word) => word.replace(/[-/\\^$*+?.()|[\]{}]/gi, "\\$&"))
