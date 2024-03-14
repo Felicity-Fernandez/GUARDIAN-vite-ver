@@ -14,7 +14,13 @@
 }
 #header {
   display: flex;
-  flex-direction: row;
+  /* flex-direction: row; */
+}
+.tab {
+  cursor: pointer;
+  padding: 10px;
+  margin-right: 10px;
+  background-color: #eee;
 }
 #block {
   float: left;

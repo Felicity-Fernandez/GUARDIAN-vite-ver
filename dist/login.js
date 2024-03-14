@@ -1,9 +1,11 @@
 document.addEventListener("DOMContentLoaded", function () {
-  var resetBtn = document.getElementById("resetBtn");
-  var loginBtn = document.getElementById("login");
-  var pass = document.getElementById("psw");
-  var initPass = "admin";
-  var passValue = "";
+  let resetBtn = document.getElementById("resetBtn");
+  let loginBtn = document.getElementById("login");
+  let pass = document.getElementById("psw");
+  let paragraphs = document.getElementsByTagName("p");
+  let initPass = "admin";
+  let passValue = "";
+
   if (pass.value === "" || pass.value === null) {
     loginBtn.disabled = true;
     resetBtn.disabled = true;
@@ -42,48 +44,57 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  main();
-  pass.addEventListener("input", function () {
-    if (pass.value.trim() === "" || pass.value === null) {
-      // If empty, disable the button
-      loginBtn.disabled = true;
-      resetBtn.disabled = true;
-    } else if (pass.placeholder === "Enter New Password") {
-      loginBtn.disabled = true;
-    } else {
-      // If not empty, enable the button
-      loginBtn.disabled = false;
-      resetBtn.disabled = false;
-    }
-  });
-  resetBtn.addEventListener("click", function () {
-    if (resetBtn.textContent === "Set New") {
-      if (pass.value === passValue) {
-        pass.placeholder = "Enter New Password";
-        pass.value = "";
-        resetBtn.textContent = "Save";
+  main().then((result) => {
+    pass.addEventListener("input", function () {
+      if (pass.value === "" || pass.value === null) {
+        // If empty, disable the button
         loginBtn.disabled = true;
+        resetBtn.disabled = true;
       } else {
-        alert("Wrong Password");
+        // If not empty, enable the button
+        loginBtn.disabled = false;
+        resetBtn.disabled = false;
       }
-    } else {
-      pass.placeholder = "Enter Password";
-      loginBtn.disabled = true;
-      pass.value = "";
-      //   chrome.storage.sync.set(
-      //     {
-      //       password: pass.value,
-      //     },
-      //     function () {
-      //       console.log("password is changed");
-      //     }
-      //   );
-      resetBtn.textContent = "Set New";
-    }
-  });
-  loginBtn.addEventListener("click", function () {
-    if (pass.value === passValue) {
-      window.location.href = "index.html";
-    }
+    });
+    resetBtn.addEventListener("click", function () {
+      if (resetBtn.textContent === "Set New") {
+        if (pass.value === passValue) {
+          paragraphs[0].textContent = "";
+          paragraphs[1].textContent = "Click 'Save' to set new password";
+          pass.placeholder = "Enter New Password";
+          pass.value = "";
+          resetBtn.textContent = "Save";
+          loginBtn.disabled = true;
+        } else {
+          alert("Wrong Password");
+        }
+      } else {
+        // loginBtn.disabled = true;
+        chrome.storage.sync.set(
+          {
+            password: pass.value,
+          },
+          function (result) {
+            console.log("password is changed");
+            pass.placeholder = "Enter Password";
+            paragraphs[0].textContent = "Want to set new password?";
+            paragraphs[1].textContent =
+              "Enter saved credential then click button below";
+            pass.value = "";
+            console.log("password is changed:", pass.value);
+            resetBtn.textContent = "Set New";
+          }
+        );
+      }
+    });
+    loginBtn.addEventListener("click", function () {
+      main().then((result) => {
+        if (pass.value === passValue) {
+          window.location.href = "index.html";
+        } else {
+          alert("Wrong Password");
+        }
+      });
+    });
   });
 });
