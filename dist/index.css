@@ -12,43 +12,59 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-#header {
+.tabs {
   display: flex;
   /* flex-direction: row; */
 }
 .tab {
   cursor: pointer;
   padding: 10px;
-  margin-right: 10px;
+  /* margin-right: 10px; */
   background-color: #eee;
-}
-#block {
   float: left;
   width: 50%;
   padding: 10px;
-  border: 1px solid;
+  border: 2px solid;
   text-align: center;
   border-radius: 0% 0% 0% 0%;
 }
-
-#censor {
-  float: left;
-  width: 50%;
-  padding: 10px;
-  border: 1px solid;
-  text-align: center;
-  border-radius: 0% 0% 0% 0%;
+.content-item {
+  display: none;
+  margin-top: none;
+  border-top: solid #ccc;
+  border-bottom: 2px solid;
+  border-left: 2px solid;
+  border-right: 2px solid;
+}
+.active {
+  background-color: #ccc;
+  border-bottom: none;
 }
 
-#upper {
+.fade-in {
+  animation: fadeIn 0.5s;
+  display: block;
+  background-color: #ccc;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.upper {
   /* max-height: 250px; */
   /* overflow: auto; */
-  border: 1px solid;
+
   padding-left: 10px;
   padding-bottom: 10px;
 }
 
-#upper ul {
+.upper ul {
   list-style-type: none;
   padding: 0;
 }
@@ -64,7 +80,7 @@ body {
   /* display: flex; */
   place-items: center;
   min-width: 320px;
-  min-height: 100vh;
+  /* min-height: 100vh; */
 }
 
 h1 {
@@ -161,7 +177,7 @@ button:focus-visible {
 .text-input {
   width: 200px; /* Adjust the width as needed */
   height: 30px; /* Adjust the height as needed */
-  border: 1px solid #ccc;
+  border: 1px solid black;
   border-radius: 20px; /* Adjust the border radius as needed */
   padding: 5px 10px; /* Adjust the padding as needed */
   box-sizing: border-box; /* Include padding in width and height */

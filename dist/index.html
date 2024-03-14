@@ -10,14 +10,14 @@
     <!-- <link rel="stylesheet" crossorigin href="/assets/index-4sK4E3Wk.css" /> -->
   </head>
   <body>
-    <div>
-      <div id="header">
+    
+      <div class="tabs">
         <div class="tab" id="block">BLOCKING</div>
         <div class="tab" id="censor">CENSORING</div>
       </div>
-      <div id="mainBody">
-        <div id="upper">
-          
+      <div class="content">
+        <div class="content-item" id="tab1">
+        <div class="upper">
           <div id="setTime">
             <div><h4>Set Time Limit</h4>
             Current Limit: <span id="currentLimit">0</span> minutes</div> 
@@ -42,7 +42,24 @@
           </div>
         </div>
       </div>
+      <div class="content-item" id="tab2">
+        <div class="upper">
+          <div class="box">
+            <input
+              type="text"
+              class="text-input"
+              id="newWord"
+              placeholder="Add Word"
+            />
+          </div>
+
+          <div class="container">
+            <button type="button" class="blkbtn" id="addWrd">Censor</button>
+          </div>
+        </div>
+      </div>
     </div>
+    
   </body>
   <script src="index.js"></script>
 </html>
