@@ -3,7 +3,11 @@ import nlp from "compromise";
 import { badWords } from "./profanity.js";
 
 let fetchedSites = [];
-
+let blockStartTimes = {};
+let timer = 0;
+let recentConsumed = 0;
+let blockSite = "";
+let tabId = "";
 async function retrieveBlockSites() {
   return new Promise((resolve, reject) => {
     chrome.storage.sync.get(
@@ -48,11 +52,26 @@ async function main() {
   try {
     fetchedSites = await retrieveBlockSites();
     let siteList = fetchedSites.blockSites;
+    timer = fetchedSites.time;
+    recentConsumed = fetchedSites.consumed;
     console.log(siteList);
     console.log("fetched", fetchedSites);
     const currentUrl = window.location.href;
     if (siteList.some((site) => currentUrl.includes(site))) {
       console.log(currentUrl);
+      blockSite = siteList.find((site) => currentUrl.includes(site));
+      // getRecentConsumed();
+
+      // Generate a unique identifier for this tab
+      tabId = Date.now().toString();
+
+      // Check if start time is recorded for the site in this tab, if not, record it
+      if (!blockStartTimes[blockSite]) {
+        blockStartTimes[blockSite] = {};
+      }
+      if (!blockStartTimes[blockSite][tabId]) {
+        blockStartTimes[blockSite][tabId] = new Date().getTime();
+      }
     } else {
       console.log("not included");
     }
@@ -64,90 +83,53 @@ async function main() {
 
 main();
 
-// chrome.storage.sync.get(["time", "consumed"], function (result) {
-//   // Check if the variable already exists
-//   if (!result.time) {
-//     // If the variable doesn't exist, create it
-//     var initialTime = 0;
-//     var initialConsumed = 0;
-//     // Store the variable
-//     chrome.storage.sync.set(
-//       { time: initialTime, consumed: initialConsumed },
-//       function () {
-//         console.log("Time is stored");
-//       }
-//     );
-//   } else {
-//     console.log("Time already exists:", result.time);
-//   }
-// });
-const blockStartTimes = {}; // Object to store start times for each blocked site
+setInterval(() => {
+  const currentTime = new Date().getTime();
+  const timeElapsed =
+    (currentTime - blockStartTimes[blockSite][tabId]) / (1000 * 60); // Convert milliseconds to minutes
 
-//const blockSite = fetchedSites.find((site) => currentUrl.includes(site));
-//console.log(blockSite);
-// chrome.runtime.sendMessage({ action: "getBlockSites" }, (toBlockSites) => {
-//   const currentUrl = window.location.href;
-//   const blockSite = toBlockSites.find((site) => currentUrl.includes(site));
+  let consumed = calculateTotalTime(blockStartTimes); // Recalculate total time spent on all blocked sites
+  main().then((result) => {
+    // getRecentConsumed(consumed);
 
-//   if (blockSite) {
-//     console.log(window.location.href);
+    if (consumed + recentConsumed >= timer) {
+      window.location.href = "about:blank";
+      console.log(consumed, timer);
+    }
+    recentConsumed = recentConsumed + consumed;
+    chrome.storage.sync.set({ consumed: recentConsumed }, function () {
+      console.log("consumed updated:", recentConsumed);
+    });
+  });
+}, 1000); // Check every second
 
-//     getRecentConsumed();
-
-//     // Generate a unique identifier for this tab
-//     const tabId = Date.now().toString();
-
-//     // Check if start time is recorded for the site in this tab, if not, record it
-//     if (!blockStartTimes[blockSite]) {
-//       blockStartTimes[blockSite] = {};
-//     }
-//     if (!blockStartTimes[blockSite][tabId]) {
-//       blockStartTimes[blockSite][tabId] = new Date().getTime();
-//     }
-
-//     // Check if time limit is exceeded
-//     setInterval(() => {
-//       const currentTime = new Date().getTime();
-//       const timeElapsed =
-//         (currentTime - blockStartTimes[blockSite][tabId]) / (1000 * 60); // Convert milliseconds to minutes
-
-//       let consumed = calculateTotalTime(blockStartTimes); // Recalculate total time spent on all blocked sites
-//       getRecentConsumed(consumed);
-
-//       //if (consumed >= timer) {
-//       // window.location.href = "about:blank";
-//       //console.log(consumed, timer);
-//       //}
-//     }, 1000); // Check every second
-//   }
-// });
-
-// function getRecentConsumed(consumed) {
-//   let recentConsumed = localStorage.getItem("consumed");
-//   if (recentConsumed) {
-//     // console.log(recentConsumed);
-//     if (recentConsumed >= timer) {
-//       window.location.href = "about:blank";
-//       //console.log(consumed, timer);
-//     } else {
-//       recentConsumed = recentConsumed + consumed;
-//       localStorage.setItem("consumed", recentConsumed);
-//     }
-//   } else {
-//     localStorage.setItem("consumed", consumed ?? 0);
-//   }
-// }
-// function calculateTotalTime(blockStartTimes) {
-//   let total = 0;
-//   for (const site in blockStartTimes) {
-//     for (const tabId in blockStartTimes[site]) {
-//       const startTime = blockStartTimes[site][tabId];
-//       const currentTime = new Date().getTime();
-//       total += (currentTime - startTime) / (1000 * 60); // Convert milliseconds to minutes
-//     }
-//   }
-//   return total;
-// }
+function getRecentConsumed(consumed) {
+  if (recentConsumed) {
+    // console.log(recentConsumed);
+    if (recentConsumed >= timer) {
+      window.location.href = "about:blank";
+      //console.log(consumed, timer);
+    } else {
+      recentConsumed = recentConsumed + consumed;
+      chrome.storage.sync.set({ consumed: recentConsumed }, function () {
+        console.log("consumed updated:", recentConsumed);
+      });
+    }
+  } else {
+    // localStorage.setItem("consumed", consumed ?? 0);
+  }
+}
+function calculateTotalTime(blockStartTimes) {
+  let total = 0;
+  for (const site in blockStartTimes) {
+    for (const tabId in blockStartTimes[site]) {
+      const startTime = blockStartTimes[site][tabId];
+      const currentTime = new Date().getTime();
+      total += (currentTime - startTime) / (1000 * 60); // Convert milliseconds to minutes
+    }
+  }
+  return total;
+}
 
 const profanityPattern = `(${badWords
   .map((word) => word.replace(/[-/\\^$*+?.()|[\]{}]/gi, "\\$&"))
