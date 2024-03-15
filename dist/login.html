@@ -4,11 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <link rel="stylesheet" href="index.css" />
     <script src="login.js"></script>
+    
   </head>
   <body>
     <div>
+        <span class="material-symbols-outlined">
+          account_circle
+        </span>
       <div class="form">
         <input
           id="psw"
@@ -19,11 +24,11 @@
         />
       </div>
       <div class="container">
-        <button id="login">Login</button>
+        <button class="logbtn" id="login">Login</button>
       </div>
       <p class="container">Want to set new password?</p>
       <p class="container">Enter saved credential then click button below</p>
-      <div class="container"><button id="resetBtn">Set New</button></div>
+      <div class="resbtncontainer"><button class="resbtn" id="resetBtn">Set New</button></div>
     </div>
   </body>
 </html>
