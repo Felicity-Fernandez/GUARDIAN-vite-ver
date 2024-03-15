@@ -12,11 +12,15 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-#header {
+.tabs {
   display: flex;
-  flex-direction: row;
+  /* flex-direction: row; */
 }
-#block {
+.tab {
+  cursor: pointer;
+  padding: 10px;
+  /* margin-right: 10px; */
+  background-color: #ccc;
   float: left;
   width: 50%;
   padding: 10px;
@@ -24,34 +28,58 @@
   text-align: center;
   border-radius: 0% 0% 0% 0%;
 }
-
-#censor {
-  float: left;
-  width: 50%;
-  padding: 10px;
-  border: 1px solid;
-  text-align: center;
-  border-radius: 0% 0% 0% 0%;
+.content-item {
+  display: none;
+  margin-top: none;
+  border-top: solid #ffffff;
+  border-bottom: 2px solid;
+  border-left: 2px solid;
+  border-right: 2px solid;
+}
+.active {
+  background-color: #ffffff;
+  border-bottom: none;
 }
 
-#upper {
-  max-height: 250px;
-  overflow: auto;
-  border: 1px solid;
+.fade-in {
+  animation: fadeIn 0.5s;
+  display: block;
+  background-color: #ffffff;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.upper {
+  /* max-height: 250px; */
+  /* overflow: auto; */
+
   padding-left: 10px;
   padding-bottom: 10px;
 }
 
-#upper ul {
+.upper ul {
   list-style-type: none;
   padding: 0;
+}
+#blklist {
+  max-height: 250px;
+  overflow: auto;
+  /* border: 1px solid; */
+  padding-left: 10px;
+  padding-bottom: 10px;
 }
 body {
   margin: 0;
   /* display: flex; */
   place-items: center;
   min-width: 320px;
-  min-height: 100vh;
+  /* min-height: 100vh; */
 }
 
 h1 {
@@ -129,7 +157,7 @@ button:focus-visible {
   transform: rotate(45deg);
 }
 .box {
-  padding-top: 10px;
+  padding-top: 5px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -140,10 +168,22 @@ button:focus-visible {
   justify-content: center;
   align-items: center;
 }
+.resbtncontainer {
+  padding-top: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 15px;
+}
+.form {
+  padding-top: 4px;
+  justify-content: center;
+  align-items: center;
+}
 .text-input {
   width: 200px; /* Adjust the width as needed */
   height: 30px; /* Adjust the height as needed */
-  border: 1px solid #ccc;
+  border: 1px solid black;
   border-radius: 20px; /* Adjust the border radius as needed */
   padding: 5px 10px; /* Adjust the padding as needed */
   box-sizing: border-box; /* Include padding in width and height */
@@ -163,6 +203,55 @@ button:focus-visible {
   cursor: pointer;
   transition: background-color 0.3s ease;
   padding: 5px 10px; /* Adjust the padding as needed */
+}
+.logbtn {
+  width: 200px; /* Adjust the width as needed */
+  height: 30px; /* Adjust the height as needed */
+  border: 1px solid #25bd64; /* Button border color */
+  background-color: #25bd64; /* Button background color */
+  color: #fff; /* Button text color */
+  border-radius: 20px;
+  padding: 10px;
+  margin-left: -4px; /* Adjust margin to compensate for border width */
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  padding: 5px 10px; /* Adjust the padding as needed */
+}
+.resbtn {
+  width: 200px; /* Adjust the width as needed */
+  height: 30px; /* Adjust the height as needed */
+  border: 1px solid #456352; /* Button border color */
+  background-color: #456352; /* Button background color */
+  color: #fff; /* Button text color */
+  border-radius: 20px;
+  padding: 10px;
+  margin-left: -4px; /* Adjust margin to compensate for border width */
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  padding: 5px 10px; /* Adjust the padding as needed */
+}
+.material-symbols-outlined {
+  padding-top: 20px;
+  color: #25bd64;
+  font-size: 150px;
+  padding-left: 85px;
+}
+.btnset {
+  border: 1px solid #ff5353; /* Button border color */
+  background-color: #ff5353; /* Button background color */
+  color: #fff; /* Button text color */
+  border-radius: 20px;
+  margin-left: 10px;
+}
+.limitbox {
+  border-radius: 20px;
+  margin-top: 5px;
+  width: 200px; /* Adjust the width as needed */
+  height: 30px; /* Adjust the height as needed */
+  box-sizing: border-box; /* Include padding in width and height */
+  padding: 5px 10px;
+  background-color: #ccc;
+  border: 1px solid black;
 }
 @media (prefers-color-scheme: light) {
   :root {

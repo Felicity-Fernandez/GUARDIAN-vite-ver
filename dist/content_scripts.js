@@ -2,49 +2,108 @@ import * as toxicity from "@tensorflow-models/toxicity";
 import nlp from "compromise";
 import { badWords } from "./profanity.js";
 
-let timer = 2; // Total time limit in minutes
-// let consumed = 0; // Total time spent on all blocked sites in minutes
-const blockStartTimes = {}; // Object to store start times for each blocked site
+let fetchedSites = [];
+let blockStartTimes = {};
+let timer = 0;
+let recentConsumed = 0;
+let blockSite = "";
+let tabId = "";
+async function retrieveBlockSites() {
+  return new Promise((resolve, reject) => {
+    chrome.storage.sync.get(
+      ["blockSites", "time", "consumed"],
+      function (result) {
+        if (!result.blockSites) {
+          var blockSites = [
+            "youtube.com",
+            "facebook.com",
+            "instagram.com",
+            "tiktok.com",
+          ];
+          var initialTime = 0;
+          var initialConsumed = 0;
+          chrome.storage.sync.set(
+            {
+              blockSites: blockSites,
+              time: initialTime,
+              consumed: initialConsumed,
+            },
+            function () {
+              console.log("Array is stored");
+              chrome.storage.sync.get(
+                ["blockSites", "time", "consumed"],
+                function (result) {
+                  console.log("Array is stored", result);
+                }
+              );
+              resolve(result);
+            }
+          );
+        } else {
+          console.log("Array already exists:", result);
+          resolve(result);
+        }
+      }
+    );
+  });
+}
 
-chrome.runtime.sendMessage({ action: "getBlockSites" }, (toBlockSites) => {
-  const currentUrl = window.location.href;
-  const blockSite = toBlockSites.find((site) => currentUrl.includes(site));
+async function main() {
+  try {
+    fetchedSites = await retrieveBlockSites();
+    let siteList = fetchedSites.blockSites;
+    timer = fetchedSites.time;
+    recentConsumed = fetchedSites.consumed;
+    console.log(siteList);
+    console.log("fetched", fetchedSites);
+    const currentUrl = window.location.href;
+    if (siteList.some((site) => currentUrl.includes(site))) {
+      console.log(currentUrl);
+      blockSite = siteList.find((site) => currentUrl.includes(site));
+      // getRecentConsumed();
 
-  if (blockSite) {
-    console.log(window.location.href);
+      // Generate a unique identifier for this tab
+      tabId = Date.now().toString();
 
-    getRecentConsumed();
-
-    // Generate a unique identifier for this tab
-    const tabId = Date.now().toString();
-
-    // Check if start time is recorded for the site in this tab, if not, record it
-    if (!blockStartTimes[blockSite]) {
-      blockStartTimes[blockSite] = {};
+      // Check if start time is recorded for the site in this tab, if not, record it
+      if (!blockStartTimes[blockSite]) {
+        blockStartTimes[blockSite] = {};
+      }
+      if (!blockStartTimes[blockSite][tabId]) {
+        blockStartTimes[blockSite][tabId] = new Date().getTime();
+      }
+    } else {
+      console.log("not included");
     }
-    if (!blockStartTimes[blockSite][tabId]) {
-      blockStartTimes[blockSite][tabId] = new Date().getTime();
-    }
-
-    // Check if time limit is exceeded
-    setInterval(() => {
-      const currentTime = new Date().getTime();
-      const timeElapsed =
-        (currentTime - blockStartTimes[blockSite][tabId]) / (1000 * 60); // Convert milliseconds to minutes
-
-      let consumed = calculateTotalTime(blockStartTimes); // Recalculate total time spent on all blocked sites
-      getRecentConsumed(consumed);
-
-      //if (consumed >= timer) {
-      // window.location.href = "about:blank";
-      //console.log(consumed, timer);
-      //}
-    }, 1000); // Check every second
+    // Do something with fetchedSites here
+  } catch (error) {
+    console.error("Error retrieving block sites:", error);
   }
-});
+}
+
+main();
+
+setInterval(() => {
+  const currentTime = new Date().getTime();
+  const timeElapsed =
+    (currentTime - blockStartTimes[blockSite][tabId]) / (1000 * 60); // Convert milliseconds to minutes
+
+  let consumed = calculateTotalTime(blockStartTimes); // Recalculate total time spent on all blocked sites
+  main().then((result) => {
+    // getRecentConsumed(consumed);
+
+    if (consumed + recentConsumed >= timer) {
+      window.location.href = "about:blank";
+      console.log(consumed, timer);
+    }
+    recentConsumed = recentConsumed + consumed;
+    chrome.storage.sync.set({ consumed: recentConsumed }, function () {
+      console.log("consumed updated:", recentConsumed);
+    });
+  });
+}, 1000); // Check every second
 
 function getRecentConsumed(consumed) {
-  let recentConsumed = localStorage.getItem("consumed");
   if (recentConsumed) {
     // console.log(recentConsumed);
     if (recentConsumed >= timer) {
@@ -52,10 +111,12 @@ function getRecentConsumed(consumed) {
       //console.log(consumed, timer);
     } else {
       recentConsumed = recentConsumed + consumed;
-      localStorage.setItem("consumed", recentConsumed);
+      chrome.storage.sync.set({ consumed: recentConsumed }, function () {
+        console.log("consumed updated:", recentConsumed);
+      });
     }
   } else {
-    localStorage.setItem("consumed", consumed ?? 0);
+    // localStorage.setItem("consumed", consumed ?? 0);
   }
 }
 function calculateTotalTime(blockStartTimes) {
