@@ -8,10 +8,11 @@ let timer = 0;
 let recentConsumed = 0;
 let blockSite = "";
 let tabId = "";
+let lastDate = "";
 async function retrieveBlockSites() {
   return new Promise((resolve, reject) => {
     chrome.storage.sync.get(
-      ["blockSites", "time", "consumed"],
+      ["blockSites", "time", "consumed", "date"],
       function (result) {
         if (!result.blockSites) {
           var blockSites = [
@@ -47,6 +48,10 @@ async function retrieveBlockSites() {
     );
   });
 }
+// async function setRecentConsumed(consumed) {
+//   chrome.storage.sync.set({ consumed: 0 }, function () {});
+// }
+// setRecentConsumed();
 
 async function main() {
   try {
@@ -54,13 +59,14 @@ async function main() {
     let siteList = fetchedSites.blockSites;
     timer = fetchedSites.time;
     recentConsumed = fetchedSites.consumed;
+    lastDate = fetchedSites.date;
     console.log(siteList);
     console.log("fetched", fetchedSites);
     const currentUrl = window.location.href;
     if (siteList.some((site) => currentUrl.includes(site))) {
       console.log(currentUrl);
       blockSite = siteList.find((site) => currentUrl.includes(site));
-      // getRecentConsumed();
+      getRecentConsumed(null);
 
       // Generate a unique identifier for this tab
       tabId = Date.now().toString();
@@ -81,42 +87,49 @@ async function main() {
   }
 }
 
-main();
+main().then((result) => {
+  setInterval(() => {
+    const currentTime = new Date().getTime();
+    const timeElapsed =
+      (currentTime - blockStartTimes[blockSite][tabId]) / (1000 * 60); // Convert milliseconds to minutes
 
-setInterval(() => {
-  const currentTime = new Date().getTime();
-  const timeElapsed =
-    (currentTime - blockStartTimes[blockSite][tabId]) / (1000 * 60); // Convert milliseconds to minutes
+    let consumed = calculateTotalTime(blockStartTimes);
+    console.log("consumed", consumed); // Recalculate total time spent on all blocked sites
+    main().then((result) => {
+      getRecentConsumed(consumed);
+    });
+  }, 1000);
+});
 
-  let consumed = calculateTotalTime(blockStartTimes); // Recalculate total time spent on all blocked sites
-  main().then((result) => {
-    // getRecentConsumed(consumed);
+// Check every second
 
-    if (consumed + recentConsumed >= timer) {
+function getRecentConsumed(consumed) {
+  console.log("get recentConsumed called");
+
+  if (recentConsumed >= timer * 60 * 1000) {
+    let newDate = new Date();
+    if (
+      lastDate.getDate() != newDate.getDate() ||
+      lastDate.getMonth() != newDate.getMonth() ||
+      lastDate.getFullYear() != newDate.getFullYear()
+    ) {
+      recentConsumed = 0;
+      chrome.storage.sync.set({ consumed: recentConsumed }, function () {
+        console.log("consumed updated:", 0);
+      });
+    } else {
       window.location.href = "about:blank";
-      console.log(consumed, timer);
+      chrome.storage.sync.set({ date: newDate }, function () {
+        console.log("date updated:", newDate);
+      });
     }
+
+    //console.log(consumed, timer);
+  } else {
     recentConsumed = recentConsumed + consumed;
     chrome.storage.sync.set({ consumed: recentConsumed }, function () {
       console.log("consumed updated:", recentConsumed);
     });
-  });
-}, 1000); // Check every second
-
-function getRecentConsumed(consumed) {
-  if (recentConsumed) {
-    // console.log(recentConsumed);
-    if (recentConsumed >= timer) {
-      window.location.href = "about:blank";
-      //console.log(consumed, timer);
-    } else {
-      recentConsumed = recentConsumed + consumed;
-      chrome.storage.sync.set({ consumed: recentConsumed }, function () {
-        console.log("consumed updated:", recentConsumed);
-      });
-    }
-  } else {
-    // localStorage.setItem("consumed", consumed ?? 0);
   }
 }
 function calculateTotalTime(blockStartTimes) {
@@ -125,7 +138,7 @@ function calculateTotalTime(blockStartTimes) {
     for (const tabId in blockStartTimes[site]) {
       const startTime = blockStartTimes[site][tabId];
       const currentTime = new Date().getTime();
-      total += (currentTime - startTime) / (1000 * 60); // Convert milliseconds to minutes
+      total += (currentTime - startTime) / 1000; // Convert milliseconds to minutes
     }
   }
   return total;

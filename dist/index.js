@@ -1,5 +1,7 @@
 //NEW CHECKBOX
 document.addEventListener("DOMContentLoaded", function () {
+  let date = new Date();
+
   const tabs = document.querySelectorAll(".tab");
   const contentItems = document.querySelectorAll(".content-item");
 
@@ -91,8 +93,8 @@ document.addEventListener("DOMContentLoaded", function () {
   setBtn.addEventListener("click", function () {
     const time = document.getElementById("limit").value;
     if (time) {
-      chrome.storage.sync.set({ time: time }, function () {
-        console.log("time updated:", time);
+      chrome.storage.sync.set({ time: parseInt(time) }, function () {
+        console.log("time updated:", parseInt(time));
       });
       document.getElementById("currentLimit").textContent = time;
       document.getElementById("limit").value = "";
