@@ -23,11 +23,13 @@ async function retrieveBlockSites() {
           ];
           var initialTime = 0;
           var initialConsumed = 0;
+          var initialDate = new Date().toDateString();
           chrome.storage.sync.set(
             {
               blockSites: blockSites,
               time: initialTime,
               consumed: initialConsumed,
+              date: initialDate,
             },
             function () {
               console.log("Array is stored");
@@ -49,7 +51,12 @@ async function retrieveBlockSites() {
   });
 }
 // async function setRecentConsumed(consumed) {
-//   chrome.storage.sync.set({ consumed: 0 }, function () {});
+//   let newDate = new Date().toDateString();
+//   chrome.storage.sync.set({ date: newDate }, function () {
+//     chrome.storage.sync.get(["date"], function (result) {
+//       console.log("date set", result);
+//     });
+//   });
 // }
 // setRecentConsumed();
 
@@ -107,12 +114,8 @@ function getRecentConsumed(consumed) {
   console.log("get recentConsumed called");
 
   if (recentConsumed >= timer * 60 * 1000) {
-    let newDate = new Date();
-    if (
-      lastDate.getDate() != newDate.getDate() ||
-      lastDate.getMonth() != newDate.getMonth() ||
-      lastDate.getFullYear() != newDate.getFullYear()
-    ) {
+    let newDate = new Date().toDateString();
+    if (lastDate !== newDate) {
       recentConsumed = 0;
       chrome.storage.sync.set({ consumed: recentConsumed }, function () {
         console.log("consumed updated:", 0);
