@@ -117,9 +117,12 @@ function getRecentConsumed(consumed) {
     let newDate = new Date().toDateString();
     if (lastDate !== newDate) {
       recentConsumed = 0;
-      chrome.storage.sync.set({ consumed: recentConsumed }, function () {
-        console.log("consumed updated:", 0);
-      });
+      chrome.storage.sync.set(
+        { consumed: recentConsumed, date: newDate },
+        function () {
+          console.log("consumed updated:", 0);
+        }
+      );
     } else {
       window.location.href = "about:blank";
       chrome.storage.sync.set({ date: newDate }, function () {
