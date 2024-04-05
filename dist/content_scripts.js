@@ -108,6 +108,14 @@ main().then((result) => {
   }, 1000);
 });
 
+chrome.tabs.onUpdated.addListener(function (activeInfo, changeInfo, tab) {
+  // if (changeInfo.status === "complete") {
+  //   main().then((result) => {
+  //     console.log("tab updated");
+  //   });
+  // }
+  clearInterval();
+});
 // Check every second
 
 function getRecentConsumed(consumed) {
