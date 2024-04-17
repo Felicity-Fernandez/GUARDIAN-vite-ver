@@ -6,11 +6,17 @@ document.addEventListener("DOMContentLoaded", function () {
   let initPass = "admin";
   let passValue = "";
 
-  if (pass.value === "" || pass.value === null) {
-    loginBtn.disabled = true;
-    resetBtn.disabled = true;
-    console.log("disabled");
+  function checkPass() {
+    if (pass.value === "" || pass.value === null) {
+      loginBtn.disabled = true;
+      resetBtn.disabled = true;
+      loginBtn.style.opacity = 0.5;
+      resetBtn.style.opacity = 0.5;
+      console.log("disabled");
+    }
   }
+
+  checkPass();
   async function retrievePass() {
     return new Promise((resolve, reject) => {
       chrome.storage.sync.get(["password"], function (result) {
@@ -50,10 +56,13 @@ document.addEventListener("DOMContentLoaded", function () {
         // If empty, disable the button
         loginBtn.disabled = true;
         resetBtn.disabled = true;
+        checkPass();
       } else {
         // If not empty, enable the button
         loginBtn.disabled = false;
         resetBtn.disabled = false;
+        loginBtn.style.opacity = 1;
+        resetBtn.style.opacity = 1;
       }
     });
     resetBtn.addEventListener("click", function () {
@@ -64,7 +73,9 @@ document.addEventListener("DOMContentLoaded", function () {
           pass.placeholder = "Enter New Password";
           pass.value = "";
           resetBtn.textContent = "Save";
-          loginBtn.disabled = true;
+          // loginBtn.disabled = true;
+          loginBtn.style.display = "none";
+          checkPass();
         } else {
           alert("Wrong Password");
         }
@@ -83,6 +94,8 @@ document.addEventListener("DOMContentLoaded", function () {
             pass.value = "";
             console.log("password is changed:", pass.value);
             resetBtn.textContent = "Set New";
+            loginBtn.style.display = "block";
+            checkPass();
           }
         );
       }
