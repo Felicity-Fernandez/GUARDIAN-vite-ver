@@ -9,6 +9,8 @@ let recentConsumed = 0;
 let blockSite = "";
 let tabId = "";
 let lastDate = "";
+let included = false;
+let intervalId;
 async function retrieveBlockSites() {
   return new Promise((resolve, reject) => {
     chrome.storage.sync.get(
@@ -50,15 +52,15 @@ async function retrieveBlockSites() {
     );
   });
 }
-// async function setRecentConsumed(consumed) {
-//   let newDate = new Date().toDateString();
-//   chrome.storage.sync.set({ date: newDate }, function () {
-//     chrome.storage.sync.get(["date"], function (result) {
-//       console.log("date set", result);
-//     });
-//   });
-// }
-// setRecentConsumed();
+// // async function setRecentConsumed(consumed) {
+// //   let newDate = new Date().toDateString();
+// //   chrome.storage.sync.set({ date: newDate }, function () {
+// //     chrome.storage.sync.get(["date"], function (result) {
+// //       console.log("date set", result);
+// //     });
+// //   });
+// // }
+// // setRecentConsumed();
 
 async function main() {
   try {
@@ -71,6 +73,7 @@ async function main() {
     console.log("fetched", fetchedSites);
     const currentUrl = window.location.href;
     if (siteList.some((site) => currentUrl.includes(site))) {
+      included = true;
       console.log(currentUrl);
       blockSite = siteList.find((site) => currentUrl.includes(site));
       getRecentConsumed(null);
@@ -95,7 +98,25 @@ async function main() {
 }
 
 main().then((result) => {
-  setInterval(() => {
+  if (included) {
+    interval();
+  }
+
+  // setInterval(() => {
+  //   const currentTime = new Date().getTime();
+  //   const timeElapsed =
+  //     (currentTime - blockStartTimes[blockSite][tabId]) / (1000 * 60); // Convert milliseconds to minutes
+
+  //   let consumed = calculateTotalTime(blockStartTimes);
+  //   console.log("consumed", consumed); // Recalculate total time spent on all blocked sites
+  //   main().then((result) => {
+  //     getRecentConsumed(consumed);
+  //   });
+  // }, 1000);
+});
+
+function interval() {
+  intervalId = setInterval(() => {
     const currentTime = new Date().getTime();
     const timeElapsed =
       (currentTime - blockStartTimes[blockSite][tabId]) / (1000 * 60); // Convert milliseconds to minutes
@@ -106,18 +127,23 @@ main().then((result) => {
       getRecentConsumed(consumed);
     });
   }, 1000);
-});
+}
 
-chrome.tabs.onUpdated.addListener(function (activeInfo, changeInfo, tab) {
-  // if (changeInfo.status === "complete") {
-  //   main().then((result) => {
-  //     console.log("tab updated");
-  //   });
-  // }
-  clearInterval();
-});
-// Check every second
+// function stopInterval() {
+//   clearInterval(intervalId);
+// }
 
+// chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+//   if (message.action === "clearInterval") {
+//     alert("clearInterval");
+//     stopInterval();
+//     // main().then((result) => {
+//     //   if (included) {
+//     //     interval();
+//     //   }
+//     // });
+//   }
+// });
 function getRecentConsumed(consumed) {
   console.log("get recentConsumed called");
 
@@ -165,109 +191,109 @@ let tweets = null;
 // The minimum prediction confidence.
 const threshold = 0.9;
 
-// const labelsToInclude = ["identity_attack", "insult", "threat", "toxicity"];
-// toxicity.load(threshold).then((model) => {
-//   chrome.runtime.sendMessage({ action: "getFilterSites" }, (toFilterSites) => {
-//     const currentUrl = window.location.href;
-//     if (toFilterSites.some((site) => currentUrl.includes(site))) {
-//       console.log("true");
+const labelsToInclude = ["identity_attack", "insult", "threat", "toxicity"];
+toxicity.load(threshold).then((model) => {
+  chrome.runtime.sendMessage({ action: "getFilterSites" }, (toFilterSites) => {
+    const currentUrl = window.location.href;
+    if (toFilterSites.some((site) => currentUrl.includes(site))) {
+      console.log("true");
 
-//       // If DOMContentLoaded has already occured, execute the logic immediately
-//       if (
-//         document.readyState === "complete" ||
-//         document.readyState === "interactive"
-//       ) {
-//         const interval = setInterval(() => {
-//           if (
-//             document.querySelector('[data-testid = "cellInnerDiv"]')
-//               ?.parentElement
-//           ) {
-//             console.log("ready...");
-//             clearInterval(interval);
-//             processTweets();
-//           }
-//         }, 100);
-//       }
-//     }
-//   });
-//   function processTweets() {
-//     console.log("started");
-//     let targetNode = document.querySelector(
-//       '[data-testid = "cellInnerDiv"]'
-//     ).parentElement;
+      // If DOMContentLoaded has already occured, execute the logic immediately
+      if (
+        document.readyState === "complete" ||
+        document.readyState === "interactive"
+      ) {
+        const interval = setInterval(() => {
+          if (
+            document.querySelector('[data-testid = "cellInnerDiv"]')
+              ?.parentElement
+          ) {
+            console.log("ready...");
+            clearInterval(interval);
+            processTweets();
+          }
+        }, 100);
+      }
+    }
+  });
+  function processTweets() {
+    console.log("started");
+    let targetNode = document.querySelector(
+      '[data-testid = "cellInnerDiv"]'
+    ).parentElement;
 
-//     //console.log(targetNode);
+    //console.log(targetNode);
 
-//     // Options for the observer (which mutations to observe)
-//     const config = { attributes: true, childList: true, subtree: true };
+    // Options for the observer (which mutations to observe)
+    const config = { attributes: true, childList: true, subtree: true };
 
-//     // Callback function to execute when mutations are observed
-//     const callback = (mutationList, observer) => {
-//       for (const mutation of mutationList) {
-//         if (mutation.type === "childList") {
-//           //console.log("A child node has been added or removed.");
-//           tweets = document.querySelectorAll('[dir = "auto"]');
+    // Callback function to execute when mutations are observed
+    const callback = (mutationList, observer) => {
+      for (const mutation of mutationList) {
+        if (mutation.type === "childList") {
+          //console.log("A child node has been added or removed.");
+          tweets = document.querySelectorAll('[dir = "auto"]');
 
-//           // console.log(tweets);
-//         }
-//       }
-//       // console.log(tweets);
+          // console.log(tweets);
+        }
+      }
+      // console.log(tweets);
 
-//       if (tweets && tweets?.length < 100000 && tweets?.length > 0) {
-//         observer.disconnect();
-//         [...tweets].forEach(async (tweet) => {
-//           var xpathExpression = "//*[contains(text(), 'a')]";
+      if (tweets && tweets?.length < 100000 && tweets?.length > 0) {
+        // observer.disconnect();
+        [...tweets].forEach(async (tweet) => {
+          var xpathExpression = "//*[contains(text(), 'a')]";
 
-//           // Evaluate the XPath expression
-//           var xpathresult = document.evaluate(
-//             xpathExpression,
-//             document,
-//             null,
-//             XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE,
-//             null
-//           );
-//           console.log(xpathresult);
-//           for (var i = 0; i < xpathresult.snapshotLength; i++) {
-//             var matchedElement = xpathresult.snapshotItem(i);
-//             // Do something with the selected elements
-//             console.log(matchedElement);
-//           }
+          // Evaluate the XPath expression
+          // var xpathresult = document.evaluate(
+          //   xpathExpression,
+          //   document,
+          //   null,
+          //   XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE,
+          //   null
+          // );
+          // console.log(xpathresult);
+          // for (var i = 0; i < xpathresult.snapshotLength; i++) {
+          //   var matchedElement = xpathresult.snapshotItem(i);
+          //   // Do something with the selected elements
+          //   console.log(matchedElement);
+          // }
 
-//           const fetchedTweet = nlp(tweet.textContent);
-//           const filteredTweet = fetchedTweet
-//             .match(profanityPattern)
-//             .replace("****");
-//           const predictions = await model.classify([tweet.textContent]);
-//           const toxicityScores = predictions;
+          const fetchedTweet = nlp(tweet.textContent);
+          const filteredTweet = fetchedTweet
+            .match(profanityPattern)
+            .replace("****");
+          const predictions = await model.classify([tweet.textContent]);
+          const toxicityScores = predictions;
 
-//           console.log("Toxicity Scores:", toxicityScores);
+          console.log("Toxicity Scores:", toxicityScores);
 
-//           const matchedLabels = toxicityScores
-//             .filter((score) => score.results[0].match)
-//             .map((score) => score.label);
+          const matchedLabels = toxicityScores
+            .filter((score) => score.results[0].match)
+            .map((score) => score.label);
 
-//           if (matchedLabels.length > 0) {
-//             // Tweet is toxic
-//             console.log("Tweet is toxic:", tweet.innerText);
-//             let caption = "";
-//             for (const array of filteredTweet.document) {
-//               for (const word of array) {
-//                 caption += " " + word.text;
-//               }
-//             }
-//             tweet.textContent = caption;
-//           } else {
-//             // Tweet is not toxic
-//             console.log("Tweet is not toxic:", tweet.innerText);
-//           }
-//         });
-//       }
-//     };
+          if (matchedLabels.length > 0) {
+            // Tweet is toxic
+            console.log("Tweet is toxic:", tweet.innerText);
+            let caption = "";
+            for (const array of filteredTweet.document) {
+              for (const word of array) {
+                caption += " " + word.text;
+              }
+            }
+            tweet.textContent = caption;
+          } else {
+            // Tweet is not toxic
+            console.log("Tweet is not toxic:", tweet.innerText);
+          }
+        });
+      }
+    };
 
-//     // Create an observer instance linked to the callback function
-//     const observer = new MutationObserver(callback);
+    // Create an observer instance linked to the callback function
+    const observer = new MutationObserver(callback);
 
-//     // Start observing the target node for configured mutations
-//     observer.observe(targetNode, config);
-//   }
-// });
+    // Start observing the target node for configured mutations
+    observer.observe(targetNode, config);
+  }
+});

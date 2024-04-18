@@ -3,10 +3,15 @@
   "name": "GUARDIAN",
   "version": "1.0",
   "description": "Block access to social media sites and censor profanities in X (Twitter)",
-  "permissions": ["activeTab", "scripting", "storage"],
+  "permissions": ["activeTab", "scripting", "storage", "tabs"],
   "host_permissions": ["<all_urls>"],
   "action": {
     "default_popup": "login.html"
+  },
+  "icons": {
+    "16": "logo 16.png",
+    "48": "logo 48.png",
+    "128": "logo 128.png"
   },
   "background": {
     "service_worker": "background.js",

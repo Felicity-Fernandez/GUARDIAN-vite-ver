@@ -126,16 +126,15 @@ button:focus-visible {
   left: 0;
   height: 15px; /* Adjust as needed */
   width: 15px; /* Adjust as needed */
-  background-color: #ccc; /* Default background color */
-  border-radius: 50%; /* Convert to circle */
+  background-color: red; /* Default background color */
 }
 
 .checkbox-label:hover input ~ .checkmark {
-  background-color: #aaa; /* Change background color on hover */
+  background-color: #ccc; /* Change background color on hover */
 }
 
 .checkbox-label input:checked ~ .checkmark {
-  background-color: #3f3f3f; /* Change background color when checked */
+  background-color: green; /* Change background color when checked */
 }
 
 .checkmark:after {
@@ -146,6 +145,16 @@ button:focus-visible {
 
 .checkbox-label input:checked ~ .checkmark:after {
   display: block;
+  content: "";
+  position: absolute;
+  left: 5px; /* Adjust as needed */
+  top: 2px; /* Adjust as needed */
+  width: 5px; /* Adjust as needed */
+  height: 10px; /* Adjust as needed */
+  border-width: 0 2px 2px 0;
+  border-style: solid;
+  border-color: #fff; /* Color of the checkmark */
+  transform: rotate(45deg);
 }
 
 .checkbox-label .checkmark:after {
