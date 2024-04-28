@@ -10,31 +10,33 @@ let toBlockSites = [
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "getFilterSites") {
     sendResponse(toFilterSites);
-  } else if (message.action === "getBlockSites") {
-    sendResponse(toBlockSites);
-  } else if (message.action === "updateBlockSites") {
-    const { site, checked } = message;
-    if (checked) {
-      if (!toBlockSites.includes(site)) {
-        toBlockSites.push(site);
-      }
-    } else {
-      const index = toBlockSites.indexOf(site);
-      if (index !== -1) {
-        toBlockSites.splice(index, 1);
-      }
-    }
   }
-  console.log("Updated toBlockSites:", toBlockSites);
 });
+//   } else if (message.action === "getBlockSites") {
+//     sendResponse(toBlockSites);
+//   } else if (message.action === "updateBlockSites") {
+//     const { site, checked } = message;
+//     if (checked) {
+//       if (!toBlockSites.includes(site)) {
+//         toBlockSites.push(site);
+//       }
+//     } else {
+//       const index = toBlockSites.indexOf(site);
+//       if (index !== -1) {
+//         toBlockSites.splice(index, 1);
+//       }
+//     }
+//   }
+//   console.log("Updated toBlockSites:", toBlockSites);
+// });
 
 // Background Script
 
 // Event listener for when a new tab is created
-chrome.tabs.onCreated.addListener(function (tab) {
-  // Send a message to the content script to clear the interval
-  chrome.tabs.sendMessage(tab.id, { action: "clearInterval" });
-});
+// chrome.tabs.onCreated.addListener(function (tab) {
+//   // Send a message to the content script to clear the interval
+//   chrome.tabs.sendMessage(tab.id, { action: "clearInterval" });
+// });
 
 // // Event listener for when a tab is switched to
 // chrome.tabs.onActivated.addListener(function (activeInfo) {
