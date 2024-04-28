@@ -3,9 +3,11 @@ import nlp from "compromise";
 import { badWords } from "./profanity.js";
 
 let fetchedSites = [];
+
 let blockStartTimes = {};
 let timer = 0;
 let recentConsumed = 0;
+let wordList;
 let blockSite = "";
 let tabId = "";
 let lastDate = "";
@@ -14,9 +16,9 @@ let intervalId;
 async function retrieveBlockSites() {
   return new Promise((resolve, reject) => {
     chrome.storage.sync.get(
-      ["blockSites", "time", "consumed", "date"],
+      ["blockSites", "time", "consumed", "date", "censorWords"],
       function (result) {
-        if (!result.blockSites) {
+        if (!result.censorWords) {
           var blockSites = [
             "youtube.com",
             "facebook.com",
@@ -26,17 +28,19 @@ async function retrieveBlockSites() {
           var initialTime = 0;
           var initialConsumed = 0;
           var initialDate = new Date().toDateString();
+          var cenWords = ["puta"];
           chrome.storage.sync.set(
             {
               blockSites: blockSites,
               time: initialTime,
               consumed: initialConsumed,
               date: initialDate,
+              censorWords: cenWords,
             },
             function () {
               console.log("Array is stored");
               chrome.storage.sync.get(
-                ["blockSites", "time", "consumed"],
+                ["blockSites", "time", "consumed", "date", "censorWords"],
                 function (result) {
                   console.log("Array is stored", result);
                 }
@@ -66,6 +70,7 @@ async function main() {
   try {
     fetchedSites = await retrieveBlockSites();
     let siteList = fetchedSites.blockSites;
+    // wordList = fetchedSites.censorWords;
     timer = fetchedSites.time;
     recentConsumed = fetchedSites.consumed;
     lastDate = fetchedSites.date;
@@ -183,10 +188,8 @@ function calculateTotalTime(blockStartTimes) {
   }
   return total;
 }
+// console.log(wordList);
 
-const profanityPattern = `(${badWords
-  .map((word) => word.replace(/[-/\\^$*+?.()|[\]{}]/gi, "\\$&"))
-  .join("|")})`;
 let tweets = null;
 // The minimum prediction confidence.
 const threshold = 0.9;
@@ -218,7 +221,16 @@ chrome.runtime.sendMessage({ action: "getFilterSites" }, (toFilterSites) => {
 });
 
 function processTweets() {
+  let profanityPattern;
   console.log("started");
+  chrome.storage.sync.get(["censorWords"], function (result) {
+    wordList = result.censorWords;
+    let allBadWords = [...badWords, ...wordList];
+    profanityPattern = `(${allBadWords
+      .map((word) => word.replace(/[-/\\^$*+?.()|[\]{}]/gi, "\\$&"))
+      .join("|")})`;
+  });
+
   try {
     let targetNode = document.querySelector(
       '[data-testid = "cellInnerDiv"]'

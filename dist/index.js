@@ -1,5 +1,26 @@
 //NEW CHECKBOX
 document.addEventListener("DOMContentLoaded", function () {
+  // async function retrieveBlockSites() {
+  //   return new Promise((resolve, reject) => {
+  //     chrome.storage.sync.get(["cenWords"], function (result) {
+  //       if (!result.censorWords) {
+  //         var censorWords = [];
+  //         chrome.storage.sync.set(
+  //           {
+  //             censorWords: censorWords,
+  //           },
+  //           function () {
+  //             console.log("Array is stored");
+  //             chrome.storage.sync.get(["cenWords"], function (result) {
+  //               console.log("Array is stored", result);
+  //             });
+  //             resolve(result);
+  //           }
+  //         );
+  //       }
+  //     });
+  //   });
+  // }
   let date = new Date();
 
   const tabs = document.querySelectorAll(".tab");
@@ -65,8 +86,10 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
   let timer = 0;
-  chrome.storage.sync.get(["time"], function (result) {
+  let censorWords = [];
+  chrome.storage.sync.get(["time", "censorWords"], function (result) {
     timer = result.time;
+    censorWords = result.censorWords;
     console.log(timer);
     document.getElementById("currentLimit").textContent = timer;
   });
@@ -98,6 +121,21 @@ document.addEventListener("DOMContentLoaded", function () {
       });
       document.getElementById("currentLimit").textContent = time;
       document.getElementById("limit").value = "";
+    }
+  });
+
+  var addWrd = document.getElementById("addWrd");
+  addWrd.addEventListener("click", function () {
+    const word = document.getElementById("newWord").value;
+    if (word) {
+      if (censorWords.includes(word)) {
+        return;
+      }
+      censorWords.push(word);
+      chrome.storage.sync.set({ censorWords: censorWords }, function () {
+        console.log("censorWords updated:", censorWords);
+      });
+      document.getElementById("newWord").value = "";
     }
   });
 });
