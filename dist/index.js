@@ -138,4 +138,19 @@ document.addEventListener("DOMContentLoaded", function () {
       document.getElementById("newWord").value = "";
     }
   });
+
+  var delWrd = document.getElementById("delWrd");
+  delWrd.addEventListener("click", function () {
+    const word = document.getElementById("delWord").value;
+    if (word) {
+      const index = censorWords.indexOf(word);
+      if (index !== -1) {
+        censorWords.splice(index, 1);
+      }
+      chrome.storage.sync.set({ censorWords: censorWords }, function () {
+        console.log("censorWords updated:", censorWords);
+      });
+      document.getElementById("delWord").value = "";
+    }
+  });
 });
