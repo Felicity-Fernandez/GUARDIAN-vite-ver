@@ -3,13 +3,13 @@ import nlp from "compromise";
 import { badWords } from "./profanity.js";
 
 // import * as tf from "@tensorflow/tfjs";
-// import MODEL_URL from "./1/model.json"; // Assuming this is the correct URL to your model.json file
+// import MODEL_URL from "./model/model.json"; // Assuming this is the correct URL to your model.json file
 // console.log("model", MODEL_URL);
 
 // // Function to load the model
 // async function loadModel() {
 //   try {
-//     const model = await tf.loadLayersModel(MODEL_URL);
+//     const model = await tf.loadGraphModel(MODEL_URL);
 //     return model;
 //   } catch (error) {
 //     console.error("Error loading model:", error);
@@ -140,7 +140,8 @@ function interval() {
     const timeElapsed =
       (currentTime - blockStartTimes[blockSite][tabId]) / (1000 * 60); // Convert milliseconds to minutes
 
-    let consumed = calculateTotalTime(blockStartTimes);
+    // let consumed = calculateTotalTime(blockStartTimes);
+    let consumed = recentConsumed + 1000;
     console.log("consumed", consumed); // Recalculate total time spent on all blocked sites
     main().then((result) => {
       getRecentConsumed(consumed);
@@ -151,7 +152,7 @@ function interval() {
 function getRecentConsumed(consumed) {
   console.log("get recentConsumed called");
 
-  if (recentConsumed >= timer * 6000) {
+  if (recentConsumed >= timer * 60000) {
     let newDate = new Date().toDateString();
     if (lastDate !== newDate) {
       recentConsumed = 0;
@@ -172,7 +173,7 @@ function getRecentConsumed(consumed) {
 
     //console.log(consumed, timer);
   } else {
-    recentConsumed = recentConsumed + consumed;
+    recentConsumed = consumed;
     chrome.storage.sync.set({ consumed: recentConsumed }, function () {
       console.log("consumed updated:", recentConsumed);
     });
@@ -184,7 +185,7 @@ function calculateTotalTime(blockStartTimes) {
     for (const tabId in blockStartTimes[site]) {
       const startTime = blockStartTimes[site][tabId];
       const currentTime = new Date().getTime();
-      total += (currentTime - startTime) / (1000 * 60); // Convert milliseconds to minutes
+      total += (currentTime - startTime) / 1000; // Convert milliseconds to minutes
     }
   }
   return total;
