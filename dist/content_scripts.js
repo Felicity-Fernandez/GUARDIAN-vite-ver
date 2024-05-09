@@ -1,6 +1,41 @@
-import * as toxicity from "@tensorflow-models/toxicity";
+// import * as toxicity from "@tensorflow-models/toxicity";
 import nlp from "compromise";
 import { badWords } from "./profanity.js";
+
+// import * as tf from "@tensorflow/tfjs";
+// import MODEL_URL from "./1/model.json"; // Assuming this is the correct URL to your model.json file
+// console.log("model", MODEL_URL);
+
+// // Function to load the model
+// async function loadModel() {
+//   try {
+//     const model = await tf.loadLayersModel(MODEL_URL);
+//     return model;
+//   } catch (error) {
+//     console.error("Error loading model:", error);
+//     throw error;
+//   }
+// }
+
+// // Example usage
+// (async () => {
+//   const text = "puta ka"; // Example text
+//   const model = await loadModel();
+//   const prediction = model.predict(tf.tensor2d([text])); // Assuming the model expects a 2D tensor
+//   displayToxicityResults(prediction);
+// })();
+
+// // Preprocess text
+// function preprocessText(text) {
+//   // Add any necessary preprocessing here
+//   return text;
+// }
+
+// // Display results
+// function displayToxicityResults(prediction) {
+//   // Handle/display toxicity results here
+//   console.log(prediction);
+// }
 
 let fetchedSites = [];
 
@@ -56,15 +91,6 @@ async function retrieveBlockSites() {
     );
   });
 }
-// // async function setRecentConsumed(consumed) {
-// //   let newDate = new Date().toDateString();
-// //   chrome.storage.sync.set({ date: newDate }, function () {
-// //     chrome.storage.sync.get(["date"], function (result) {
-// //       console.log("date set", result);
-// //     });
-// //   });
-// // }
-// // setRecentConsumed();
 
 async function main() {
   try {
@@ -106,18 +132,6 @@ main().then((result) => {
   if (included) {
     interval();
   }
-
-  // setInterval(() => {
-  //   const currentTime = new Date().getTime();
-  //   const timeElapsed =
-  //     (currentTime - blockStartTimes[blockSite][tabId]) / (1000 * 60); // Convert milliseconds to minutes
-
-  //   let consumed = calculateTotalTime(blockStartTimes);
-  //   console.log("consumed", consumed); // Recalculate total time spent on all blocked sites
-  //   main().then((result) => {
-  //     getRecentConsumed(consumed);
-  //   });
-  // }, 1000);
 });
 
 function interval() {
@@ -134,25 +148,10 @@ function interval() {
   }, 1000);
 }
 
-// function stopInterval() {
-//   clearInterval(intervalId);
-// }
-
-// chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-//   if (message.action === "clearInterval") {
-//     alert("clearInterval");
-//     stopInterval();
-//     // main().then((result) => {
-//     //   if (included) {
-//     //     interval();
-//     //   }
-//     // });
-//   }
-// });
 function getRecentConsumed(consumed) {
   console.log("get recentConsumed called");
 
-  if (recentConsumed >= timer * 60 * 1000) {
+  if (recentConsumed >= timer * 60000) {
     let newDate = new Date().toDateString();
     if (lastDate !== newDate) {
       recentConsumed = 0;
@@ -164,9 +163,11 @@ function getRecentConsumed(consumed) {
       );
     } else {
       window.location.href = "about:blank";
+      console.log(newDate, lastDate);
       chrome.storage.sync.set({ date: newDate }, function () {
         console.log("date updated:", newDate);
       });
+      clearInterval(intervalId);
     }
 
     //console.log(consumed, timer);
@@ -183,7 +184,7 @@ function calculateTotalTime(blockStartTimes) {
     for (const tabId in blockStartTimes[site]) {
       const startTime = blockStartTimes[site][tabId];
       const currentTime = new Date().getTime();
-      total += (currentTime - startTime) / 1000; // Convert milliseconds to minutes
+      total += (currentTime - startTime) / (1000 * 60); // Convert milliseconds to minutes
     }
   }
   return total;
