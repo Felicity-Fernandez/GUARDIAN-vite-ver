@@ -151,7 +151,7 @@ function interval() {
 function getRecentConsumed(consumed) {
   console.log("get recentConsumed called");
 
-  if (recentConsumed >= timer * 60000) {
+  if (recentConsumed >= timer * 6000) {
     let newDate = new Date().toDateString();
     if (lastDate !== newDate) {
       recentConsumed = 0;
