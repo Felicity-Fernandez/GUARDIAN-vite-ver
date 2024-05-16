@@ -4,7 +4,8 @@
   "version": "1.0",
   "description": "Block access to social media sites and censor profanities in X (Twitter)",
   "permissions": ["activeTab", "scripting", "storage", "tabs"],
-  "host_permissions": ["<all_urls>"],
+
+  "host_permissions": ["<all_urls>", "*://*/*"],
   "action": {
     "default_popup": "login.html"
   },
@@ -15,7 +16,7 @@
   },
   "background": {
     "service_worker": "background.js",
-    "web_accessible_resources": ["index.html"]
+    "web_accessible_resources": ["index.html", "tf.min.js"]
   },
   "content_scripts": [
     {
@@ -24,12 +25,23 @@
     }
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'",
+    "extension_pages": "script-src 'self'; object-src 'self'; script-src-elem 'self'",
     "script-src": [
       "'self'",
       "'unsafe-eval'",
       "'wasm-unsafe-eval'",
-      "'inline-speculation-rules'"
+      "'inline-speculation-rules'",
+      "'unsafe-inline'",
+      "https://cdn.jsdelivr.net"
+    ],
+    "script-src-elem": [
+      "'self'",
+      "'unsafe-eval'",
+      "'wasm-unsafe-eval'",
+      "'inline-speculation-rules'",
+      "http://localhost:*",
+      "http://127.0.0.1:*",
+      "https://cdn.jsdelivr.net"
     ]
   }
 }

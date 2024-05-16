@@ -1,41 +1,105 @@
 // import * as toxicity from "@tensorflow-models/toxicity";
 import nlp from "compromise";
 import { badWords } from "./profanity.js";
-
 // import * as tf from "@tensorflow/tfjs";
-// import MODEL_URL from "./model/model.json"; // Assuming this is the correct URL to your model.json file
-// console.log("model", MODEL_URL);
+// import * as modelUrl from "./model/model.json";
+// tf.loadGraphModel(modelUrl)
+//   .then((model) => {
+//     // Model is loaded, you can use it for predictions
+//     console.log("Model loaded successfully:", model);
 
-// // Function to load the model
-// async function loadModel() {
-//   try {
-//     const model = await tf.loadGraphModel(MODEL_URL);
-//     return model;
-//   } catch (error) {
+//     // Perform classification or other tasks with the loaded model
+//     // For example:
+//     const text = "pucha ka";
+//     const prediction = model.predict(text);
+//     console.log(prediction);
+//   })
+//   .catch((error) => {
 //     console.error("Error loading model:", error);
-//     throw error;
-//   }
-// }
+//   });
 
-// // Example usage
-// (async () => {
-//   const text = "puta ka"; // Example text
-//   const model = await loadModel();
-//   const prediction = model.predict(tf.tensor2d([text])); // Assuming the model expects a 2D tensor
-//   displayToxicityResults(prediction);
-// })();
+// Load TensorFlow.js library dynamically
+// const script = document.createElement("script");
+// script.src = chrome.runtime.getURL("tf.min.js");
+// (document.head || document.documentElement).appendChild(script);
 
-// // Preprocess text
+// script.onload = function () {
+//   // Load the TensorFlow.js model
+//   tf.ready().then(function () {
+//     const modelUrl = chrome.runtime.getURL("model/model.json");
+
+//     // Load the model asynchronously
+//     tf.loadLayersModel(modelUrl)
+//       .then((model) => {
+//         // Model is loaded, you can use it for predictions
+//         console.log("Model loaded successfully:", model);
+
+//         // Perform classification or other tasks with the loaded model
+//         // For example:
+//         // const text = "Your input text here";
+//         // const prediction = model.predict(preprocessText(text));
+//         // displayToxicityResults(prediction);
+//       })
+//       .catch((error) => {
+//         console.error("Error loading model:", error);
+//       });
+//   });
+// };
+
+// // Function to preprocess text (if needed)
 // function preprocessText(text) {
 //   // Add any necessary preprocessing here
 //   return text;
 // }
 
-// // Display results
+// // Function to display toxicity results (if needed)
 // function displayToxicityResults(prediction) {
 //   // Handle/display toxicity results here
-//   console.log(prediction);
 // }
+// const exampleScript = {
+//   name: "tf.min.js",
+//   src: "http://127.0.0.1:8080/tf.min.js",
+//   id: "tf-script",
+// };
+
+// const loadScript = (scriptToLoad, callback) => {
+//   let script = document.createElement("script");
+//   script.src = scriptToLoad.src;
+//   script.id = scriptToLoad.id;
+//   script.onload = () => {
+//     callback();
+//   };
+//   script.onerror = (e) =>
+//     console.error("error loading" + scriptToLoad.name + "script", e);
+//   document.head.append(script);
+// };
+// const models = fetch("http://127.0.0.1:8080/model/model.json")
+//   .then((response) => response.json())
+//   .catch((error) => {
+//     console.error("Error loading model:", error);
+//   });
+// loadScript(exampleScript, () => {
+//   console.log("successfully loaded tf");
+//   //...whatever you do after loading the script
+//   tf.loadGraphModel("http://127.0.0.1:8080/model.json").then((model) => {
+//     // Model is loaded, you can use TensorFlow.js objects here
+//     console.log("Model loaded successfully:", model);
+//   });
+//   // tf.loadGraphModel(modelUrl)
+//   //   .then((model) => {
+//   //     // Model is loaded, you can use it for predictions
+//   //     console.log("Model loaded successfully:", model);
+//   //     // Perform classification or other tasks with the loaded model
+//   //     // For example:
+//   //     const text = "pucha ka";
+//   //     const prediction = model.predict(text);
+//   //     // displayToxicityResults(prediction);
+//   //     console.log(prediction);
+//   //   })
+//   //   .catch((error) => {
+//   //     console.error("Error loading model:", error);
+//   //   });
+// });
 
 let fetchedSites = [];
 
@@ -48,6 +112,7 @@ let tabId = "";
 let lastDate = "";
 let included = false;
 let intervalId;
+
 async function retrieveBlockSites() {
   return new Promise((resolve, reject) => {
     chrome.storage.sync.get(
@@ -105,9 +170,10 @@ async function main() {
     const currentUrl = window.location.href;
     if (siteList.some((site) => currentUrl.includes(site))) {
       included = true;
+      console.log("recentConsumed", recentConsumed);
       console.log(currentUrl);
       blockSite = siteList.find((site) => currentUrl.includes(site));
-      getRecentConsumed(null);
+      getRecentConsumed(recentConsumed);
 
       // Generate a unique identifier for this tab
       tabId = Date.now().toString();
@@ -143,7 +209,7 @@ function interval() {
     // let consumed = calculateTotalTime(blockStartTimes);
     let consumed = recentConsumed + 1000;
     console.log("consumed", consumed); // Recalculate total time spent on all blocked sites
-    main().then((result) => {
+    main(consumed).then((result) => {
       getRecentConsumed(consumed);
     });
   }, 1000);
@@ -274,11 +340,44 @@ function processTweets() {
           //   // Do something with the selected elements
           //   console.log(matchedElement);
           // }
-
+          let replacedWordsCount = 0;
           const fetchedTweet = nlp(tweet.textContent);
           const filteredTweet = fetchedTweet
             .match(profanityPattern)
             .replace("****");
+          for (const array of filteredTweet.document) {
+            for (const word of array) {
+              if (word.text === "****") {
+                replacedWordsCount++;
+              }
+            }
+          }
+          const matchedProfanity = fetchedTweet.match(profanityPattern);
+          console.log(matchedProfanity);
+          if (replacedWordsCount > 1) {
+            // const containsMultipleWords = matchedProfanity.some(
+            //   (match) => match.split(" ").length > 1
+            // );
+            // if (containsMultipleWords) {
+            tweet.textContent = "This tweet has been censored";
+          } else if (replacedWordsCount === 1) {
+            let caption = "";
+            for (const array of filteredTweet.document) {
+              for (const word of array) {
+                caption += " " + word.text;
+              }
+            }
+            tweet.textContent = caption;
+          }
+          // console.log(fetchedTweet);
+
+          // else if (
+          //   matchedProfanity &&
+          //   matchedProfanity.out("text").split(" ").length > 1
+          // ) {
+          //   tweet.textContent = "This tweet has been censored";
+          //   // console.log(fetchedTweet, "two words");
+          // }
           // const predictions = await model.classify([tweet.textContent]);
           // const toxicityScores = predictions;
 
@@ -291,13 +390,7 @@ function processTweets() {
           // if (matchedLabels.length > 0) {
           //   // Tweet is toxic
           //   console.log("Tweet is toxic:", tweet.innerText);
-          let caption = "";
-          for (const array of filteredTweet.document) {
-            for (const word of array) {
-              caption += " " + word.text;
-            }
-          }
-          tweet.textContent = caption;
+
           // } else {
           // Tweet is not toxic
           // console.log("Tweet is not toxic:", tweet.innerText);
