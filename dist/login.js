@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let loginBtn = document.getElementById("login");
   let pass = document.getElementById("psw");
   let paragraphs = document.getElementsByTagName("p");
+  let helpIcon = document.getElementById("help");
   let initPass = "admin";
   let passValue = "";
 
@@ -108,6 +109,9 @@ document.addEventListener("DOMContentLoaded", function () {
           alert("Wrong Password");
         }
       });
+    });
+    helpIcon.addEventListener("click", function () {
+      chrome.tabs.create({ url: "tutorial.html" });
     });
   });
 });

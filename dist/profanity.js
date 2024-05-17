@@ -1627,6 +1627,7 @@ export const badWords = [
   "gaga",
   "gagi",
   "gago",
+  "gagong",
   "habal",
   "hayop ka",
   "hayup",

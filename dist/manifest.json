@@ -16,7 +16,12 @@
   },
   "background": {
     "service_worker": "background.js",
-    "web_accessible_resources": ["index.html", "tf.min.js"]
+    "web_accessible_resources": [
+      "index.html",
+      "tf.min.js",
+      "list.html",
+      "list.js"
+    ]
   },
   "content_scripts": [
     {
