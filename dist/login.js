@@ -104,10 +104,7 @@ document.addEventListener("DOMContentLoaded", function () {
           console.log(inputBox.id);
           boolHint = true;
           hint = hintValue.value;
-          if (!hintValue.value) {
-            resetBtn.disabled = true;
-            resetBtn.style.opacity = 0.5;
-          }
+
           console.log(hintValue.value);
           checkPass();
         } else {
