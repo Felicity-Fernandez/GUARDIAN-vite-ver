@@ -1,6 +1,105 @@
-import * as toxicity from "@tensorflow-models/toxicity";
+// import * as toxicity from "@tensorflow-models/toxicity";
 import nlp from "compromise";
 import { badWords } from "./profanity.js";
+// import * as tf from "@tensorflow/tfjs";
+// import * as modelUrl from "./model/model.json";
+// tf.loadGraphModel(modelUrl)
+//   .then((model) => {
+//     // Model is loaded, you can use it for predictions
+//     console.log("Model loaded successfully:", model);
+
+//     // Perform classification or other tasks with the loaded model
+//     // For example:
+//     const text = "pucha ka";
+//     const prediction = model.predict(text);
+//     console.log(prediction);
+//   })
+//   .catch((error) => {
+//     console.error("Error loading model:", error);
+//   });
+
+// Load TensorFlow.js library dynamically
+// const script = document.createElement("script");
+// script.src = chrome.runtime.getURL("tf.min.js");
+// (document.head || document.documentElement).appendChild(script);
+
+// script.onload = function () {
+//   // Load the TensorFlow.js model
+//   tf.ready().then(function () {
+//     const modelUrl = chrome.runtime.getURL("model/model.json");
+
+//     // Load the model asynchronously
+//     tf.loadLayersModel(modelUrl)
+//       .then((model) => {
+//         // Model is loaded, you can use it for predictions
+//         console.log("Model loaded successfully:", model);
+
+//         // Perform classification or other tasks with the loaded model
+//         // For example:
+//         // const text = "Your input text here";
+//         // const prediction = model.predict(preprocessText(text));
+//         // displayToxicityResults(prediction);
+//       })
+//       .catch((error) => {
+//         console.error("Error loading model:", error);
+//       });
+//   });
+// };
+
+// // Function to preprocess text (if needed)
+// function preprocessText(text) {
+//   // Add any necessary preprocessing here
+//   return text;
+// }
+
+// // Function to display toxicity results (if needed)
+// function displayToxicityResults(prediction) {
+//   // Handle/display toxicity results here
+// }
+// const exampleScript = {
+//   name: "tf.min.js",
+//   src: "http://127.0.0.1:8080/tf.min.js",
+//   id: "tf-script",
+// };
+
+// const loadScript = (scriptToLoad, callback) => {
+//   let script = document.createElement("script");
+//   script.src = scriptToLoad.src;
+//   script.id = scriptToLoad.id;
+//   script.onload = () => {
+//     callback();
+//   };
+//   script.onerror = (e) =>
+//     console.error("error loading" + scriptToLoad.name + "script", e);
+//   document.head.append(script);
+// };
+// const models = fetch("http://127.0.0.1:8080/model/model.json")
+//   .then((response) => response.json())
+//   .catch((error) => {
+//     console.error("Error loading model:", error);
+//   });
+// loadScript(exampleScript, () => {
+//   console.log("successfully loaded tf");
+//   //...whatever you do after loading the script
+//   tf.loadGraphModel("http://127.0.0.1:8080/model.json").then((model) => {
+//     // Model is loaded, you can use TensorFlow.js objects here
+//     console.log("Model loaded successfully:", model);
+//   });
+//   // tf.loadGraphModel(modelUrl)
+//   //   .then((model) => {
+//   //     // Model is loaded, you can use it for predictions
+//   //     console.log("Model loaded successfully:", model);
+//   //     // Perform classification or other tasks with the loaded model
+//   //     // For example:
+//   //     const text = "pucha ka";
+//   //     const prediction = model.predict(text);
+//   //     // displayToxicityResults(prediction);
+//   //     console.log(prediction);
+//   //   })
+//   //   .catch((error) => {
+//   //     console.error("Error loading model:", error);
+//   //   });
+// });
 
 let fetchedSites = [];
 
@@ -13,6 +112,7 @@ let tabId = "";
 let lastDate = "";
 let included = false;
 let intervalId;
+
 async function retrieveBlockSites() {
   return new Promise((resolve, reject) => {
     chrome.storage.sync.get(
@@ -56,15 +156,6 @@ async function retrieveBlockSites() {
     );
   });
 }
-// // async function setRecentConsumed(consumed) {
-// //   let newDate = new Date().toDateString();
-// //   chrome.storage.sync.set({ date: newDate }, function () {
-// //     chrome.storage.sync.get(["date"], function (result) {
-// //       console.log("date set", result);
-// //     });
-// //   });
-// // }
-// // setRecentConsumed();
 
 async function main() {
   try {
@@ -79,9 +170,10 @@ async function main() {
     const currentUrl = window.location.href;
     if (siteList.some((site) => currentUrl.includes(site))) {
       included = true;
+      console.log("recentConsumed", recentConsumed);
       console.log(currentUrl);
       blockSite = siteList.find((site) => currentUrl.includes(site));
-      getRecentConsumed(null);
+      getRecentConsumed(recentConsumed);
 
       // Generate a unique identifier for this tab
       tabId = Date.now().toString();
@@ -106,18 +198,6 @@ main().then((result) => {
   if (included) {
     interval();
   }
-
-  // setInterval(() => {
-  //   const currentTime = new Date().getTime();
-  //   const timeElapsed =
-  //     (currentTime - blockStartTimes[blockSite][tabId]) / (1000 * 60); // Convert milliseconds to minutes
-
-  //   let consumed = calculateTotalTime(blockStartTimes);
-  //   console.log("consumed", consumed); // Recalculate total time spent on all blocked sites
-  //   main().then((result) => {
-  //     getRecentConsumed(consumed);
-  //   });
-  // }, 1000);
 });
 
 function interval() {
@@ -126,33 +206,19 @@ function interval() {
     const timeElapsed =
       (currentTime - blockStartTimes[blockSite][tabId]) / (1000 * 60); // Convert milliseconds to minutes
 
-    let consumed = calculateTotalTime(blockStartTimes);
+    // let consumed = calculateTotalTime(blockStartTimes);
+    let consumed = recentConsumed + 1000;
     console.log("consumed", consumed); // Recalculate total time spent on all blocked sites
-    main().then((result) => {
+    main(consumed).then((result) => {
       getRecentConsumed(consumed);
     });
   }, 1000);
 }
 
-// function stopInterval() {
-//   clearInterval(intervalId);
-// }
-
-// chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-//   if (message.action === "clearInterval") {
-//     alert("clearInterval");
-//     stopInterval();
-//     // main().then((result) => {
-//     //   if (included) {
-//     //     interval();
-//     //   }
-//     // });
-//   }
-// });
 function getRecentConsumed(consumed) {
   console.log("get recentConsumed called");
 
-  if (recentConsumed >= timer * 60 * 1000) {
+  if (recentConsumed >= timer * 60000) {
     let newDate = new Date().toDateString();
     if (lastDate !== newDate) {
       recentConsumed = 0;
@@ -164,14 +230,16 @@ function getRecentConsumed(consumed) {
       );
     } else {
       window.location.href = "about:blank";
+      console.log(newDate, lastDate);
       chrome.storage.sync.set({ date: newDate }, function () {
         console.log("date updated:", newDate);
       });
+      clearInterval(intervalId);
     }
 
     //console.log(consumed, timer);
   } else {
-    recentConsumed = recentConsumed + consumed;
+    recentConsumed = consumed;
     chrome.storage.sync.set({ consumed: recentConsumed }, function () {
       console.log("consumed updated:", recentConsumed);
     });
@@ -272,11 +340,44 @@ function processTweets() {
           //   // Do something with the selected elements
           //   console.log(matchedElement);
           // }
-
+          let replacedWordsCount = 0;
           const fetchedTweet = nlp(tweet.textContent);
           const filteredTweet = fetchedTweet
             .match(profanityPattern)
             .replace("****");
+          for (const array of filteredTweet.document) {
+            for (const word of array) {
+              if (word.text === "****") {
+                replacedWordsCount++;
+              }
+            }
+          }
+          const matchedProfanity = fetchedTweet.match(profanityPattern);
+          console.log(matchedProfanity);
+          if (replacedWordsCount > 1) {
+            // const containsMultipleWords = matchedProfanity.some(
+            //   (match) => match.split(" ").length > 1
+            // );
+            // if (containsMultipleWords) {
+            tweet.textContent = "This tweet has been censored";
+          } else if (replacedWordsCount === 1) {
+            let caption = "";
+            for (const array of filteredTweet.document) {
+              for (const word of array) {
+                caption += " " + word.text;
+              }
+            }
+            tweet.textContent = caption;
+          }
+          // console.log(fetchedTweet);
+
+          // else if (
+          //   matchedProfanity &&
+          //   matchedProfanity.out("text").split(" ").length > 1
+          // ) {
+          //   tweet.textContent = "This tweet has been censored";
+          //   // console.log(fetchedTweet, "two words");
+          // }
           // const predictions = await model.classify([tweet.textContent]);
           // const toxicityScores = predictions;
 
@@ -289,13 +390,7 @@ function processTweets() {
           // if (matchedLabels.length > 0) {
           //   // Tweet is toxic
           //   console.log("Tweet is toxic:", tweet.innerText);
-          let caption = "";
-          for (const array of filteredTweet.document) {
-            for (const word of array) {
-              caption += " " + word.text;
-            }
-          }
-          tweet.textContent = caption;
+
           // } else {
           // Tweet is not toxic
           // console.log("Tweet is not toxic:", tweet.innerText);

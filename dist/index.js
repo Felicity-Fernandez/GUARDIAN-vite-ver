@@ -1,5 +1,10 @@
 //NEW CHECKBOX
 document.addEventListener("DOMContentLoaded", function () {
+  var list = document.getElementById("list-icon");
+
+  list.addEventListener("click", function () {
+    chrome.tabs.create({ url: "list.html" });
+  });
   // async function retrieveBlockSites() {
   //   return new Promise((resolve, reject) => {
   //     chrome.storage.sync.get(["cenWords"], function (result) {
